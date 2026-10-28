@@ -62,9 +62,9 @@ def build_pipeline() -> Pipeline:
         remainder="passthrough",
         verbose_feature_names_out=False,
     )
-    # Kept deliberately simple: claims are noisy, and deeper trees memorised the
-    # training data (train AUC 0.84 vs test 0.62). Depth-2 trees with >=50
-    # applicants per leaf were best in 5-fold cross-validation.
+    # Kept deliberately simple to avoid overfitting: depth-2 trees with >=50
+    # applicants per leaf. Deeper/longer settings scored no better in 5-fold
+    # cross-validation and varied more between folds.
     gbm = GradientBoostingClassifier(
         n_estimators=150, learning_rate=0.05, max_depth=2, min_samples_leaf=50,
         subsample=0.8, random_state=SEED,

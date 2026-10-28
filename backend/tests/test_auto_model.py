@@ -45,4 +45,10 @@ def test_missing_field_raises():
 
 def test_saved_metrics_meet_minimum_quality():
     # Guards against accidentally saving a broken model.
-    assert model_info()["metrics"]["auc_cv_mean"] > 0.65
+    assert model_info()["metrics"]["auc_cv_mean"] > 0.90
+
+
+def test_model_does_not_overfit():
+    # Overfitting shows up as training AUC far above AUC on unseen data.
+    m = model_info()["metrics"]
+    assert m["auc_train"] - m["auc_cv_mean"] < 0.03

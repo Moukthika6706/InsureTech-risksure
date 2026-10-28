@@ -16,9 +16,20 @@ rng = np.random.default_rng(SEED)
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.join(HERE, "..", "config")  # project-root config/, the single source of truth
 N_AUTO, N_HOME, N_BUS = 5000, 2500, 1500
+AUTO_SIGNAL_STRENGTH = 4.0     # x1 = original noisy data (best possible AUC ~0.70)
+AUTO_TARGET_CLAIM_RATE = 0.10  # keep the overall auto claim rate realistic
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
+def intercept_for_rate(signal, rate):
+    """Find the intercept b so that mean(sigmoid(b + signal)) == rate (bisection,
+    no random draws, so the other datasets are unaffected)."""
+    lo, hi = -20.0, 20.0
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if sigmoid(mid + signal).mean() < rate else (lo, mid)
+    return (lo + hi) / 2
 
 # city: (tier, relative population weight, flood exposure 0-1)
 CITIES = {
@@ -154,17 +165,20 @@ def gen_auto(n):
 
     vtype_eff = {"sports": 0.70, "suv": 0.10, "hatchback": 0.05, "mpv": 0.0,
                  "sedan": 0.0, "ev": -0.10}
-    logit = (-2.75
-             + 0.90 * (age < 25) + 0.30 * ((age >= 25) & (age < 30)) + 0.50 * (age > 65)
-             + 0.45 * prior_claims
-             + np.array([vtype_eff[v] for v in vtype])
-             + 0.00003 * (annual_km - 11000)
-             + 0.15 * (vehicle_age > 10)
-             + 0.35 * (tier == 1)
-             + 0.20 * (parking == "street")
-             - 0.25 * anti_theft
-             - 0.015 * years_licensed
-             + rng.normal(0, 0.45, n))
+    effects = (0.90 * (age < 25) + 0.30 * ((age >= 25) & (age < 30)) + 0.50 * (age > 65)
+               + 0.45 * prior_claims
+               + np.array([vtype_eff[v] for v in vtype])
+               + 0.00003 * (annual_km - 11000)
+               + 0.15 * (vehicle_age > 10)
+               + 0.35 * (tier == 1)
+               + 0.20 * (parking == "street")
+               - 0.25 * anti_theft
+               - 0.015 * years_licensed)
+    noise = rng.normal(0, 0.45, n)
+    # Risk factors are amplified so the demo model has a clear signal to learn
+    # (real motor claim models are much noisier, typically AUC 0.60-0.75).
+    signal = AUTO_SIGNAL_STRENGTH * effects + noise
+    logit = intercept_for_rate(signal, AUTO_TARGET_CLAIM_RATE) + signal
     p_claim = sigmoid(logit)
     claim = rng.binomial(1, p_claim)
     sev = np.minimum(rng.lognormal(np.log(28000), 0.85, n), 0.8 * idv)

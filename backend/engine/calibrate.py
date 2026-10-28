@@ -78,18 +78,19 @@ def segment_labels(df: pd.DataFrame, seg: dict) -> pd.Series:
     return col.apply(band)
 
 
-def segment_table(df, claims, before, after, seg, target, flag_points) -> pd.DataFrame:
+def segment_table(df, claims, before, after, seg, target, flag_points, min_claims=0) -> pd.DataFrame:
     d = pd.DataFrame({"segment": segment_labels(df, seg), "claims": claims,
-                      "before": before, "after": after})
+                      "n": claims > 0, "before": before, "after": after})
     t = d.groupby("segment", sort=False).agg(
-        policies=("claims", "size"), claims=("claims", "sum"),
+        policies=("claims", "size"), n_claims=("n", "sum"), claims=("claims", "sum"),
         premium_before=("before", "sum"), premium_after=("after", "sum"))
     order = [b[1] for b in seg["bands"]] if "bands" in seg else seg.get("order")
     t = t.reindex([o for o in order if o in t.index]) if order else t.sort_index()
     t["lr_before"] = t["claims"] / t["premium_before"]
     t["lr_after"] = t["claims"] / t["premium_after"]
-    t["flag"] = np.where((t["lr_after"] - target).abs() * 100 > flag_points,
-                         f">{flag_points} pts off", "")
+    off = (t["lr_after"] - target).abs() * 100 > flag_points
+    t["flag"] = np.where(t["n_claims"] < min_claims, f"ignored (<{min_claims} claims)",
+                         np.where(off, f">{flag_points} pts off", ""))
     return t
 
 
@@ -128,6 +129,7 @@ def fmt_rate(x: float, sig: int = 4) -> str:
 
 
 RATE_LINE = re.compile(r"^(\s+rate:\s*)([0-9.]+)(\s*#.*)?$")
+CAL_TAG = "#[calibration]"   # every header line carries this tag so a re-run replaces it whole
 ORIGINAL = re.compile(r"original ([0-9.]+)")
 
 
@@ -157,13 +159,14 @@ def write_rates(path: Path, k: float, target: float, today: str) -> dict:
             current = None
         out.append(line)
 
-    # Replace any previous calibration header with a fresh one.
-    out = [l for l in out if not l.startswith("# CALIBRATED")]
+    # Replace the whole previous calibration header (every line carries the tag).
+    out = [l for l in out if not l.startswith((CAL_TAG, "# CALIBRATED", "# coverage rates scaled",
+                                               "# Illustrative only"))]
     i = next(n for n, l in enumerate(out) if l.startswith("coverages:"))
     out[i:i] = [
-        f"# CALIBRATED on the synthetic sample (data/{path.stem}_applicants.csv) on {today}:",
-        f"# coverage rates scaled x{ratio:.4f} vs original to target loss ratio {target:g}.",
-        "# Illustrative only — not real actuarial pricing.",
+        f"{CAL_TAG} CALIBRATED on the synthetic sample (data/{path.stem}_applicants.csv) on {today}:",
+        f"{CAL_TAG} coverage rates scaled x{ratio:.4f} vs original to target loss ratio {target:g}.",
+        f"{CAL_TAG} Illustrative only — not real actuarial pricing.",
     ]
     path.write_text("\n".join(out) + "\n", encoding="utf-8")
     return new_rates
@@ -199,7 +202,8 @@ def calibrate(config_dir: Path = CONFIG_DIR, data_dir: Path = DATA_DIR, target: 
             "pct_value_after": after.sum() / value.sum() * 100,
             "floored_before": int((raw < minp).sum()), "floored_after": int((raw * k < minp).sum()),
             "segments": {s["name"]: segment_table(df, claims, before, after, s, target,
-                                                  settings["flag_points"])
+                                                  settings["flag_points"],
+                                                  settings.get("min_claims_for_flag", 0))
                          for s in settings["segments"].get(code, [])},
             "written": False,
         }

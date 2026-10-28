@@ -64,79 +64,88 @@ fields:
     help: Maximum payout if a customer or visitor is injured or their property damaged.
     group: Cover
 
-# CALIBRATED on the synthetic sample (data/business_applicants.csv) on 2026-10-28:
-# coverage rates scaled x5.4850 vs original to target loss ratio 0.65.
-# Illustrative only — not real actuarial pricing.
+#[calibration] CALIBRATED on the synthetic sample (data/business_applicants.csv) on 2026-10-28:
+#[calibration] coverage rates scaled x3.2650 vs original to target loss ratio 0.65.
+#[calibration] Illustrative only — not real actuarial pricing.
 coverages:
   - code: property_fire
     name: Property (fire & allied perils)
     description: Fire, flood, storm and earthquake damage to the premises and equipment.
     mandatory: true
     basis: {type: per_mille_of, field: property_sum_insured_inr}
-    rate: 3.291  # calibrated; original 0.6
+    rate: 1.959  # calibrated; original 0.6
   - code: stock
     name: Stock
     description: Goods held for sale or production.
     default: true
     basis: {type: per_mille_of, field: stock_value_inr}
-    rate: 4.388  # calibrated; original 0.8
+    rate: 2.612  # calibrated; original 0.8
   - code: public_liability
     name: Public liability
     description: Injury or property damage to customers and visitors.
     default: true
     basis: {type: per_mille_of, field: liability_limit_inr}
-    rate: 2.743  # calibrated; original 0.5
+    rate: 1.633  # calibrated; original 0.5
   - code: burglary
     name: Burglary
     description: Theft of stock and contents after forced entry.
     default: false
     basis: {type: per_mille_of, field: stock_value_inr}
-    rate: 2.743  # calibrated; original 0.5
+    rate: 1.633  # calibrated; original 0.5
   - code: money
     name: Money in transit & safe
     description: Cash stolen from the premises or on the way to the bank.
     default: false
     basis: {type: flat}
-    rate: 8228  # calibrated; original 1500
+    rate: 4898  # calibrated; original 1500
   - code: business_interruption
     name: Business interruption
     description: Lost income while the business is closed after an insured event.
     default: false
     basis: {type: percent_of, field: annual_revenue_inr}
-    rate: 0.2743  # calibrated; original 0.05
+    rate: 0.1633  # calibrated; original 0.05
 
+#[fit] FITTED on the synthetic sample (data/business_applicants.csv) on 2026-10-28:
+#[fit] Tweedie GLM, log link, power 1.5, claims per rupee of pre-factor premium.
+#[fit] Levels with <30 claims blended toward 1.0; ordered factors non-decreasing; capped to [0.5, 5].
+#[fit] Illustrative only — not real actuarial pricing.
 rating_factors:
   - name: business_type
     label: Business type
     field: business_type
     type: map
-    values: {it_office: 0.80, clinic: 0.90, retail_shop: 1.00, salon: 1.00,
-             hotel_guesthouse: 1.20, warehouse: 1.30, restaurant: 1.40, manufacturing_unit: 1.60}
+    # pre-fit: {it_office: 0.80, clinic: 0.90, retail_shop: 1.00, salon: 1.00, hotel_guesthouse: 1.20, warehouse: 1.30, restaurant: 1.40, manufacturing_unit: 1.60}
+    values: {it_office: 0.802, clinic: 0.71, retail_shop: 1.0, salon: 0.711, hotel_guesthouse: 1.321, warehouse: 0.643, restaurant: 1.114, manufacturing_unit: 0.824}
   - name: city_tier
     label: City tier
     field: city_tier
     type: map
-    values: {1: 1.05, 2: 1.00}
+    # pre-fit: {1: 1.05, 2: 1.00}
+    values: {1: 1.0, 2: 1.468}
   - name: flood_zone
     label: Flood zone
     field: flood_zone
     type: map
-    values: {1: 1.00, 2: 1.20, 3: 1.50}
+    # pre-fit: {1: 1.00, 2: 1.20, 3: 1.50}
+    values: {1: 1.0, 2: 1.352, 3: 4.183}
   - name: building_age
     label: Building age
     field: building_age_years
     type: bands
-    bands: [[10, 1.00], [25, 1.08], [40, 1.15], [999, 1.25]]
+    # pre-fit: [[10, 1.00], [25, 1.08], [40, 1.15], [999, 1.25]]
+    bands: [[10, 0.681], [25, 1.0], [40, 1.003], [999, 1.469]]
   - name: staff_count
     label: Staff count
     field: staff_count
     type: bands
-    bands: [[10, 1.00], [50, 1.05], [200, 1.10], [1000000, 1.20]]
+    # pre-fit: [[10, 1.00], [50, 1.05], [200, 1.10], [1000000, 1.20]]
+    bands: [[10, 1.0], [50, 2.191], [200, 2.915], [1000000, 2.915]]
   - name: prior_claims
     label: Claims history
     field: prior_claims_5y
     type: bands
-    bands: [[0, 1.00], [1, 1.20], [2, 1.40], [99, 1.60]]
+    # pre-fit: [[0, 1.00], [1, 1.20], [2, 1.40], [99, 1.60]]
+    bands: [[0, 1.0], [1, 1.157], [2, 1.793], [99, 1.793]]
 
 modifiers:
   - name: fire_certificate

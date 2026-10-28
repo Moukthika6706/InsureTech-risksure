@@ -74,6 +74,11 @@ Every step is returned as a breakdown row `{step, kind, code, label, detail, val
 
 **Calibration:** `engine/calibrate.py` prices every sample applicant and finds one multiplier per product for all coverage rates, so that the loss ratio (claims ÷ premium) on the sample equals `target_loss_ratio` in `config/calibration.yaml` (0.65). The minimum-premium floor is taken into account. The multiplier is written back into the YAML, with each original rate kept in a comment. Rating factors are never changed, so differences between applicants stay as configured. The segment report shows where those factors are wrong.
 
+**Relativity fitting:** `engine/fit_relativities.py` fits the rating-factor multipliers from the sample claims.
+- **Model:** a Tweedie GLM (log link, power 1.5) of claims per rupee of pre-factor premium, using the YAML's own bands. The weights are exposure^(2−p), which is equivalent to a log-exposure offset.
+- **Safeguards:** levels with fewer than 30 claims are blended toward 1.0 (credibility), ordered factors are forced to be non-decreasing, and every multiplier is capped to [0.5, 5].
+- **Writing:** with `--write`, the fitted values go into the YAML (each pre-fit table kept in a comment), then the base rates are recalibrated. This was applied to home and business. Auto is unchanged, because the boosted synthetic data makes young-driver risk too extreme for a rating table, so it is handled in underwriting instead.
+
 **Risk score** (separate from rating):
 - Auto: a gradient boosting model predicts the probability of a claim next year (0 to 1). SHAP lists the top factors pushing that number up or down.
 - Home and Business: points scorecard (0 to 100) and a risk band (low, medium, high, very_high) from `config/scorecards.yaml`.
@@ -140,6 +145,7 @@ Draft ──rate──► Quoted ──bind──► Bound ──issue──► 
 3. Auto ML model: train, report AUC, SHAP, save `models/auto_risk.joblib`
 4. Product YAMLs + generic rating engine with breakdown + pytest
 4b. Rate calibration to a target loss ratio (0.65) on the sample data
+4c. Fit rating relativities from claims (Tweedie GLM), applied to home and business
 5. Rules engine + impact preview + pytest
 6. DB models + API for quotes, bind, issue, queue, audit
 7. Rule assistant (draft/publish, schema validation, fallback examples)

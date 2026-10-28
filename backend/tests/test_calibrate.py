@@ -65,7 +65,10 @@ def test_original_rate_is_kept_in_comment(config_copy):
     calibrate(config_copy, target=0.8, products=["auto"], verbose=False)
     text = (config_copy / "auto.yaml").read_text(encoding="utf-8")
     assert "original 3400" in text          # the true original survives repeated runs
-    assert text.count("# CALIBRATED on") == 1
+    # The 3-line header is replaced whole on every run, never stacked.
+    assert text.count("CALIBRATED on") == 1
+    assert text.count("coverage rates scaled") == 1
+    assert text.count("#[calibration]") == 3
 
 
 def test_solve_multiplier_respects_minimum_premium():

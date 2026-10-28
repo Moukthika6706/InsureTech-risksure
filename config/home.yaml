@@ -80,70 +80,82 @@ fields:
     help: Value of furniture, appliances and belongings.
     group: Cover
 
-# CALIBRATED on the synthetic sample (data/home_applicants.csv) on 2026-10-28:
-# coverage rates scaled x9.0743 vs original to target loss ratio 0.65.
-# Illustrative only — not real actuarial pricing.
+#[calibration] CALIBRATED on the synthetic sample (data/home_applicants.csv) on 2026-10-28:
+#[calibration] coverage rates scaled x3.2543 vs original to target loss ratio 0.65.
+#[calibration] Illustrative only — not real actuarial pricing.
 coverages:
   - code: building
     name: Building
     description: Fire, flood, earthquake and other damage to the structure.
     mandatory: true
     basis: {type: per_mille_of, field: building_sum_insured_inr}
-    rate: 3.176  # calibrated; original 0.35
+    rate: 1.139  # calibrated; original 0.35
   - code: contents
     name: Contents
     description: Furniture, appliances and personal belongings.
     default: true
     basis: {type: per_mille_of, field: contents_sum_insured_inr}
-    rate: 9.075  # calibrated; original 1
+    rate: 3.253  # calibrated; original 1
   - code: burglary
     name: Burglary & theft
     description: Theft of contents after forced entry.
     default: false
     basis: {type: per_mille_of, field: contents_sum_insured_inr}
-    rate: 7.26  # calibrated; original 0.8
+    rate: 2.603  # calibrated; original 0.8
 
+#[fit] FITTED on the synthetic sample (data/home_applicants.csv) on 2026-10-28:
+#[fit] Tweedie GLM, log link, power 1.5, claims per rupee of pre-factor premium.
+#[fit] Levels with <30 claims blended toward 1.0; ordered factors non-decreasing; capped to [0.5, 5].
+#[fit] Illustrative only — not real actuarial pricing.
 rating_factors:
   - name: city_tier
     label: City tier
     field: city_tier
     type: map
-    values: {1: 1.05, 2: 1.00}
+    # pre-fit: {1: 1.05, 2: 1.00}
+    values: {1: 1.0, 2: 1.449}
   - name: flood_zone
     label: Flood zone
     field: flood_zone
     type: map
-    values: {1: 1.00, 2: 1.25, 3: 1.60}
+    # pre-fit: {1: 1.00, 2: 1.25, 3: 1.60}
+    values: {1: 1.0, 2: 1.686, 3: 3.527}
   - name: construction
     label: Construction type
     field: construction
     type: map
-    values: {rcc_frame: 1.00, steel: 1.05, load_bearing_brick: 1.15}
+    # pre-fit: {rcc_frame: 1.00, steel: 1.05, load_bearing_brick: 1.15}
+    values: {rcc_frame: 1.0, steel: 1.215, load_bearing_brick: 1.485}
   - name: roof_type
     label: Roof type
     field: roof_type
     type: map
-    values: {rcc_slab: 1.00, tiled: 1.15, metal_sheet: 1.10, asbestos: 1.25}
+    # pre-fit: {rcc_slab: 1.00, tiled: 1.15, metal_sheet: 1.10, asbestos: 1.25}
+    values: {rcc_slab: 1.0, tiled: 1.471, metal_sheet: 2.139, asbestos: 1.014}
   - name: building_age
     label: Building age
     field: building_age_years
     type: bands
-    bands: [[10, 1.00], [25, 1.08], [40, 1.18], [999, 1.30]]
+    # pre-fit: [[10, 1.00], [25, 1.08], [40, 1.18], [999, 1.30]]
+    bands: [[10, 1.0], [25, 1.0], [40, 1.855], [999, 1.855]]
   - name: fire_station
     label: Distance to fire station
     field: fire_station_km
     type: bands
-    bands: [[2, 1.00], [5, 1.05], [10, 1.12], [9999, 1.25]]
+    # pre-fit: [[2, 1.00], [5, 1.05], [10, 1.12], [9999, 1.25]]
+    bands: [[2, 1.0], [5, 1.646], [10, 2.07], [9999, 2.07]]
   - name: prior_claims
     label: Claims history
     field: prior_claims_5y
     type: bands
-    bands: [[0, 1.00], [1, 1.20], [2, 1.40], [99, 1.60]]
+    # pre-fit: [[0, 1.00], [1, 1.20], [2, 1.40], [99, 1.60]]
+    bands: [[0, 1.0], [1, 1.23], [2, 1.23], [99, 1.23]]
   - name: occupancy
     label: Occupancy
     field: occupancy
     type: map
-    values: {owner_occupied: 1.00, rented_out: 1.10}
+    # pre-fit: {owner_occupied: 1.00, rented_out: 1.10}
+    values: {owner_occupied: 1.0, rented_out: 1.419}
 
 modifiers:
   - name: alarm

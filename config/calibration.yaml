@@ -5,6 +5,7 @@ kind: calibration
 
 target_loss_ratio: 0.65
 flag_points: 20                  # flag segments more than 20 points from target
+min_claims_for_flag: 30          # segments with fewer claims are too noisy to judge
 
 data_file: "{code}_applicants.csv"   # inside data/
 claims_column: claim_amount_inr
@@ -33,3 +34,17 @@ segments:
     - name: Risk band
       column: risk_band
       order: [low, medium, high, very_high]
+
+# Settings for engine/fit_relativities.py (Step 4c): fit rating-factor
+# multipliers from claims with a Tweedie GLM (log link), using the same
+# levels as each product's rating tables.
+fitting:
+  tweedie_power: 1.5             # between Poisson (1, claim counts) and Gamma (2, claim sizes)
+  alpha: 0.0001                  # tiny ridge penalty, only for numerical stability
+  full_credibility_claims: 30    # levels with fewer claims are blended toward 1.0
+  cap: [0.5, 5.0]                # no multiplier outside this range
+  # Factors whose multiplier must never go down as the level goes up.
+  monotonic_increasing:
+    auto: [vehicle_age, annual_km, prior_claims]
+    home: [flood_zone, building_age, fire_station, prior_claims]
+    business: [flood_zone, building_age, staff_count, prior_claims]

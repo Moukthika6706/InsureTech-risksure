@@ -112,8 +112,7 @@ function Footer() {
             A portfolio project. All applicants, rates and models are synthetic and illustrative. This is not real actuarial pricing and not an insurance offer.
           </p>
         </div>
-        <div className="mt-10 flex flex-wrap justify-between gap-3 border-t border-white/10 pt-6 text-xs text-steel-500">
-          <span>FastAPI · scikit-learn · SHAP · React · Tailwind · Claude</span>
+        <div className="mt-10 border-t border-white/10 pt-6 text-xs text-steel-500">
           <span>Config-driven P&amp;C quoting, rating and underwriting</span>
         </div>
       </div>

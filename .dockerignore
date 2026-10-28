@@ -1,0 +1,10 @@
+# Keep the image small and free of local state and secrets.
+.git
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/*.db
+**/.env
+frontend/
+docs/
+.claude/

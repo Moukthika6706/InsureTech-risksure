@@ -1,5 +1,6 @@
 """RiskSure API entry point. Run locally: uvicorn app.main:app --reload (from backend/)."""
 import os
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -10,6 +11,7 @@ from app import models  # noqa: F401  (registers the tables)
 from app.db import Base, engine
 from app.lifecycle import InvalidTransition
 from app.routes import router
+from app.seed import seed_if_empty
 from app.services import RequestError
 from engine.rating import ApplicantError
 from engine.rules import RuleError
@@ -18,10 +20,13 @@ from engine.rules import RuleError
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(engine)   # simple for a demo; a real system would use migrations
+    if os.getenv("SEED_DEMO_DATA", "").lower() in ("1", "true", "yes"):
+        # In the background, so the server answers health checks while seeding.
+        threading.Thread(target=seed_if_empty, daemon=True).start()
     yield
 
 
-app = FastAPI(title="RiskSure API", version="0.2.0", lifespan=lifespan,
+app = FastAPI(title="RiskSure API", version="1.0.0", lifespan=lifespan,
               description="Config-driven P&C quoting, rating and underwriting (synthetic, illustrative).")
 
 # The frontend lives on a different domain (Vercel), so the browser needs CORS permission.

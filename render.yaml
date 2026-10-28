@@ -1,16 +1,19 @@
 # Render Blueprint: creates the RiskSure API web service from this repo.
+# Built with the Dockerfile at the repo root (the API needs config/, data/
+# and models/ next to backend/).
 services:
   - type: web
     name: risksure-api
-    runtime: python
+    runtime: docker
     plan: free
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.2
+      # Free instances have no persistent disk: the SQLite file is wiped on
+      # every deploy/restart, so re-create the 400-quote demo book on start.
+      - key: SEED_DEMO_DATA
+        value: "true"
       # Set this in the Render dashboard to your Vercel URL, e.g. https://risksure.vercel.app
       - key: ALLOWED_ORIGINS
         sync: false

@@ -64,43 +64,46 @@ fields:
     help: Maximum payout if a customer or visitor is injured or their property damaged.
     group: Cover
 
+# CALIBRATED on the synthetic sample (data/business_applicants.csv) on 2026-10-28:
+# coverage rates scaled x5.4850 vs original to target loss ratio 0.65.
+# Illustrative only — not real actuarial pricing.
 coverages:
   - code: property_fire
     name: Property (fire & allied perils)
     description: Fire, flood, storm and earthquake damage to the premises and equipment.
     mandatory: true
     basis: {type: per_mille_of, field: property_sum_insured_inr}
-    rate: 0.6
+    rate: 3.291  # calibrated; original 0.6
   - code: stock
     name: Stock
     description: Goods held for sale or production.
     default: true
     basis: {type: per_mille_of, field: stock_value_inr}
-    rate: 0.8
+    rate: 4.388  # calibrated; original 0.8
   - code: public_liability
     name: Public liability
     description: Injury or property damage to customers and visitors.
     default: true
     basis: {type: per_mille_of, field: liability_limit_inr}
-    rate: 0.5
+    rate: 2.743  # calibrated; original 0.5
   - code: burglary
     name: Burglary
     description: Theft of stock and contents after forced entry.
     default: false
     basis: {type: per_mille_of, field: stock_value_inr}
-    rate: 0.5
+    rate: 2.743  # calibrated; original 0.5
   - code: money
     name: Money in transit & safe
     description: Cash stolen from the premises or on the way to the bank.
     default: false
     basis: {type: flat}
-    rate: 1500
+    rate: 8228  # calibrated; original 1500
   - code: business_interruption
     name: Business interruption
     description: Lost income while the business is closed after an insured event.
     default: false
     basis: {type: percent_of, field: annual_revenue_inr}
-    rate: 0.05
+    rate: 0.2743  # calibrated; original 0.05
 
 rating_factors:
   - name: business_type

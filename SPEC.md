@@ -72,6 +72,8 @@ final premium      = modified premium × (1 + total underwriting load %)   (rule
 ```
 Every step is returned as a breakdown row `{step, kind, code, label, detail, value, multiplier, amount_change, running_total}`, and the UI draws it as a waterfall chart. Amounts are rounded at each step, so the bars add up exactly to the premium.
 
+**Calibration:** `engine/calibrate.py` prices every sample applicant and finds one multiplier per product for all coverage rates, so that the loss ratio (claims ÷ premium) on the sample equals `target_loss_ratio` in `config/calibration.yaml` (0.65). The minimum-premium floor is taken into account. The multiplier is written back into the YAML, with each original rate kept in a comment. Rating factors are never changed, so differences between applicants stay as configured. The segment report shows where those factors are wrong.
+
 **Risk score** (separate from rating):
 - Auto: a gradient boosting model predicts the probability of a claim next year (0 to 1). SHAP lists the top factors pushing that number up or down.
 - Home and Business: points scorecard (0 to 100) and a risk band (low, medium, high, very_high) from `config/scorecards.yaml`.
@@ -137,6 +139,7 @@ Draft ──rate──► Quoted ──bind──► Bound ──issue──► 
 2. Hello-world backend + frontend deployed (Render + Vercel)
 3. Auto ML model: train, report AUC, SHAP, save `models/auto_risk.joblib`
 4. Product YAMLs + generic rating engine with breakdown + pytest
+4b. Rate calibration to a target loss ratio (0.65) on the sample data
 5. Rules engine + impact preview + pytest
 6. DB models + API for quotes, bind, issue, queue, audit
 7. Rule assistant (draft/publish, schema validation, fallback examples)

@@ -39,6 +39,7 @@ The user is new to insurance. Explain insurance terms in plain language and keep
 2. Hello-world backend + frontend deployed early
 3. Auto ML model (AUC, SHAP, save joblib)
 4. Product YAMLs + generic rating engine + tests
+4b. Rate calibration (`python -m engine.calibrate`, settings in `config/calibration.yaml`): one multiplier per product on coverage rates to hit a 0.65 loss ratio on the sample; factors untouched. Segment loss ratios show the factors don't separate risk enough (young drivers and high/very_high bands run well above target).
 5. Rules engine + impact preview + tests
 6. DB models + API (quotes, bind, issue, queue, audit)
 7. Rule assistant (draft/publish, validation, fallback)

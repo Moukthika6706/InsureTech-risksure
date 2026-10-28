@@ -59,37 +59,40 @@ fields:
     group: Vehicle
   - {name: anti_theft_device, label: ARAI-approved anti-theft device, type: bool, default: false, group: Vehicle}
 
+# CALIBRATED on the synthetic sample (data/auto_applicants.csv) on 2026-10-28:
+# coverage rates scaled x0.2941 vs original to target loss ratio 0.65.
+# Illustrative only — not real actuarial pricing.
 coverages:
   - code: third_party_liability
     name: Third-party liability
     description: Injury or damage you cause to others. Mandatory by law in India.
     mandatory: true
     basis: {type: flat}
-    rate: 3400
+    rate: 1000  # calibrated; original 3400
   - code: own_damage
     name: Own damage
     description: Damage to or theft of your own car, priced on its IDV.
     default: true
     basis: {type: percent_of, field: insured_declared_value_inr}
-    rate: 2.0
+    rate: 0.5884  # calibrated; original 2
   - code: personal_accident
     name: Personal accident (owner-driver)
     description: Compulsory ₹15 lakh cover for death or disability of the owner-driver.
     mandatory: true
     basis: {type: flat}
-    rate: 750
+    rate: 220.6  # calibrated; original 750
   - code: zero_depreciation
     name: Zero depreciation add-on
     description: Pays the full cost of replaced parts with no deduction for wear.
     default: false
     basis: {type: percent_of, field: insured_declared_value_inr}
-    rate: 0.4
+    rate: 0.1177  # calibrated; original 0.4
   - code: roadside_assistance
     name: Roadside assistance
     description: Towing, flat tyre and battery help.
     default: false
     basis: {type: flat}
-    rate: 500
+    rate: 147.1  # calibrated; original 500
 
 # Rating factors: multipliers on the base premium. Bands are [upper_bound, multiplier];
 # the first band whose upper bound is >= the value applies.

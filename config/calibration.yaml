@@ -1,0 +1,35 @@
+# Settings for engine/calibrate.py (Step 4b).
+# Loss ratio = claims paid / premiums collected. Insurers typically aim for
+# roughly 60-70%: the rest of the premium pays for expenses and profit.
+kind: calibration
+
+target_loss_ratio: 0.65
+flag_points: 20                  # flag segments more than 20 points from target
+
+data_file: "{code}_applicants.csv"   # inside data/
+claims_column: claim_amount_inr
+
+# Columns summed as "insured value" for the premium-as-%-of-value sanity check.
+insured_value:
+  auto: [insured_declared_value_inr]
+  home: [building_sum_insured_inr, contents_sum_insured_inr]
+  business: [property_sum_insured_inr, stock_value_inr]
+
+# Segments for the loss-ratio-by-segment report. `bands` groups a numeric
+# column as [[upper_bound, label], ...]; without bands each value is a segment
+# (`order` sets the print order).
+segments:
+  auto:
+    - name: Driver age
+      column: driver_age
+      bands: [[24, "18-24"], [29, "25-29"], [60, "30-60"], [200, "61+"]]
+    - name: City tier
+      column: city_tier
+  home:
+    - name: Risk band
+      column: risk_band
+      order: [low, medium, high, very_high]
+  business:
+    - name: Risk band
+      column: risk_band
+      order: [low, medium, high, very_high]

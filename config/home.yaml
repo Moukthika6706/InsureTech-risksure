@@ -80,25 +80,28 @@ fields:
     help: Value of furniture, appliances and belongings.
     group: Cover
 
+# CALIBRATED on the synthetic sample (data/home_applicants.csv) on 2026-10-28:
+# coverage rates scaled x9.0743 vs original to target loss ratio 0.65.
+# Illustrative only — not real actuarial pricing.
 coverages:
   - code: building
     name: Building
     description: Fire, flood, earthquake and other damage to the structure.
     mandatory: true
     basis: {type: per_mille_of, field: building_sum_insured_inr}
-    rate: 0.35
+    rate: 3.176  # calibrated; original 0.35
   - code: contents
     name: Contents
     description: Furniture, appliances and personal belongings.
     default: true
     basis: {type: per_mille_of, field: contents_sum_insured_inr}
-    rate: 1.0
+    rate: 9.075  # calibrated; original 1
   - code: burglary
     name: Burglary & theft
     description: Theft of contents after forced entry.
     default: false
     basis: {type: per_mille_of, field: contents_sum_insured_inr}
-    rate: 0.8
+    rate: 7.26  # calibrated; original 0.8
 
 rating_factors:
   - name: city_tier

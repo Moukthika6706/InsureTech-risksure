@@ -18,12 +18,16 @@ def test_all_products_load_and_validate():
 
 
 def test_auto_premium_matches_hand_calculation():
-    # Coverages (defaults): third party 3,400 + own damage 2% x 5,00,000 + PA 750 = 14,150
+    # Coverage rates are read from config because calibration (Step 4b) changes them.
+    # Coverages (defaults): third party (flat) + own damage (% of IDV 5,00,000) + PA (flat)
     # Factors: vehicle age 3 -> x1.05, garage -> x0.95, everything else x1.00
     # Modifiers: NCB 20% -> x0.80, anti-theft -> x0.975
-    expected = 14_150 * 1.05 * 0.95 * 0.80 * 0.975
-    result = rate(get_product("auto"), AUTO)
-    assert result["base_premium"] == 14_150
+    auto = get_product("auto")
+    r = {c.code: c.rate for c in auto.coverages}
+    base = r["third_party_liability"] + r["own_damage"] / 100 * 500_000 + r["personal_accident"]
+    expected = max(base * 1.05 * 0.95 * 0.80 * 0.975, auto.min_premium)
+    result = rate(auto, AUTO)
+    assert result["base_premium"] == pytest.approx(base, abs=0.01)
     assert result["premium"] == pytest.approx(expected, abs=0.01)
 
 

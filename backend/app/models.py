@@ -3,6 +3,7 @@ from datetime import date, datetime, timezone
 from typing import Optional
 
 from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -10,6 +11,16 @@ from app.db import Base
 
 def now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+class UTCDateTime(TypeDecorator):
+    """A timestamp that always comes back as UTC. SQLite stores no time zone, so
+    without this the API would send "18:23" and browsers would read it as local time."""
+    impl = DateTime
+    cache_ok = True
+
+    def process_result_value(self, value, dialect):
+        return value.replace(tzinfo=timezone.utc) if value is not None and value.tzinfo is None else value
 
 
 class Applicant(Base):
@@ -20,7 +31,7 @@ class Applicant(Base):
     data: Mapped[dict] = mapped_column(JSON)
     source: Mapped[str] = mapped_column(String(16), default="manual")    # manual | sample
     external_ref: Mapped[Optional[str]] = mapped_column(String(32))       # e.g. AUT-00042 from the CSV
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class Quote(Base):
@@ -43,8 +54,8 @@ class Quote(Base):
     risk: Mapped[dict] = mapped_column(JSON, default=dict)            # score, band, top factors
     rule_hits: Mapped[list] = mapped_column(JSON, default=list)
     underwriter_note: Mapped[Optional[str]] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now, onupdate=now)
 
     applicant: Mapped[Applicant] = relationship()
     events: Mapped[list["AuditEvent"]] = relationship(back_populates="quote", order_by="AuditEvent.id")
@@ -66,7 +77,7 @@ class Policy(Base):
     premium: Mapped[float] = mapped_column(Float)
     start_date: Mapped[date] = mapped_column(Date)
     end_date: Mapped[date] = mapped_column(Date)
-    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    issued_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
     quote: Mapped[Quote] = relationship(back_populates="policy")
 
@@ -81,7 +92,7 @@ class AuditEvent(Base):
     to_status: Mapped[str] = mapped_column(String(16))
     actor: Mapped[str] = mapped_column(String(64))
     detail: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
     quote: Mapped[Quote] = relationship(back_populates="events")
 
@@ -96,5 +107,5 @@ class PublishedRule(Base):
     rule: Mapped[dict] = mapped_column(JSON)
     source_text: Mapped[Optional[str]] = mapped_column(Text)        # the underwriter's English
     published_by: Mapped[str] = mapped_column(String(64))
-    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    published_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     enabled: Mapped[bool] = mapped_column(default=True)

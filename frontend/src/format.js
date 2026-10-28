@@ -41,3 +41,7 @@ export const DECISIONS = {
 export const STATUS_TONE = {
   draft: 'slate', quoted: 'green', referred: 'blue', declined: 'red', bound: 'indigo', issued: 'indigo',
 }
+
+// "29 Oct, 10:42 am" in the viewer's time zone (the API sends UTC timestamps).
+export const when = (iso) =>
+  new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })

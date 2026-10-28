@@ -2,7 +2,7 @@
 engine/; this module only stores results and moves quotes through the lifecycle."""
 from datetime import date, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.lifecycle import transition
@@ -100,3 +100,44 @@ def issue(db: Session, quote: Quote, actor: str, start_date: date = None) -> Pol
                                "start_date": start.isoformat(), "end_date": policy.end_date.isoformat()}
     db.commit()
     return policy
+
+
+def dashboard(db: Session, product: str = None) -> dict:
+    """Portfolio summary for the dashboard, optionally for one product."""
+    q = select(Quote)
+    if product:
+        q = q.where(Quote.product == product)
+    quotes = db.scalars(q).all()
+    issued = [x for x in quotes if x.status == "issued"]
+
+    def count(attr):
+        out = {}
+        for x in quotes:
+            key = attr(x)
+            if key is not None:
+                out[key] = out.get(key, 0) + 1
+        return out
+
+    decided = [x for x in quotes if x.decision]
+    straight_through = sum(x.decision in ("auto_approve", "approve_adjusted") for x in decided)
+    pol = select(Policy.product, func.count(Policy.id), func.sum(Policy.premium)).group_by(Policy.product)
+    if product:
+        pol = pol.where(Policy.product == product)
+    by_product = {p: {"quotes": 0, "policies": n, "written_premium": round(s or 0, 2)} for p, n, s in db.execute(pol)}
+    for x in quotes:
+        by_product.setdefault(x.product, {"quotes": 0, "policies": 0, "written_premium": 0.0})["quotes"] += 1
+
+    return {
+        "product": product,
+        "quotes": len(quotes),
+        "policies": len(issued),
+        "written_premium": round(sum(p["written_premium"] for p in by_product.values()), 2),
+        "average_premium": round(sum(x.final_premium for x in decided) / len(decided), 2) if decided else 0,
+        "straight_through_rate": round(straight_through / len(decided), 4) if decided else None,
+        "referral_rate": round(sum(x.decision == "refer" for x in decided) / len(decided), 4) if decided else None,
+        "in_queue": sum(x.status == "referred" for x in quotes),
+        "by_status": count(lambda x: x.status),
+        "by_decision": count(lambda x: x.decision),
+        "by_risk_band": count(lambda x: (x.risk or {}).get("risk_band")),
+        "by_product": [{"product": p, **v} for p, v in sorted(by_product.items())],
+    }

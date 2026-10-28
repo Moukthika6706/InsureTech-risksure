@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { navigate } from '../router'
 import { Badge, Button, Card, ErrorBox, Spinner } from '../components/ui'
+import AuditTimeline from '../components/AuditTimeline'
 import RiskFactors from '../components/RiskFactors'
+import UnderwriteForm from '../components/UnderwriteForm'
 import Waterfall from '../components/Waterfall'
 import WhatIf from '../components/WhatIf'
 import { DECISIONS, STATUS_TONE, inr, sentenceCase, titleCase } from '../format'
@@ -36,7 +38,12 @@ export default function QuoteResult({ quoteId }) {
   if (error && !quote) return <ErrorBox error={error} />
   if (!quote) return <Spinner label="Loading quote…" />
 
-  const d = DECISIONS[quote.decision] || DECISIONS.auto_approve
+  // Headline: the system's decision, unless an underwriter has since decided a referral.
+  const d = quote.decision === 'refer' && quote.status === 'quoted'
+    ? { label: 'Approved by underwriter', tone: 'green', text: 'An underwriter reviewed and approved this quote. It is ready to buy.' }
+    : quote.decision === 'refer' && quote.status === 'declined'
+      ? { label: 'Declined by underwriter', tone: 'red', text: 'An underwriter reviewed this quote and declined it.' }
+      : DECISIONS[quote.decision] || DECISIONS.auto_approve
   // What the panels below show: the saved quote, or the what-if simulation.
   const view = whatIf
     ? { steps: whatIf.steps, premium: whatIf.premium, risk: whatIf.risk, hits: whatIf.rule_hits }
@@ -124,6 +131,20 @@ export default function QuoteResult({ quoteId }) {
           </Card>
         </div>
       </div>
+
+      {quote.status === 'referred' && (
+        <Card className="border-sky-200 p-6">
+          <h2 className="font-semibold">Underwriter decision</h2>
+          <p className="mt-1 mb-4 text-sm text-slate-600">This quote was referred. Review the rules and risk above, then decide.</p>
+          <UnderwriteForm quote={quote} onDone={setQuote} />
+        </Card>
+      )}
+
+      <Card className="p-6">
+        <h2 className="font-semibold">Audit trail</h2>
+        <p className="mt-1 mb-4 text-sm text-slate-600">Every change to this quote, who made it and why. Entries are never edited.</p>
+        <AuditTimeline events={quote.events} />
+      </Card>
 
       {product && (
         <Card className="p-6">

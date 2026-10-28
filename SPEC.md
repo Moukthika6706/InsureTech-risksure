@@ -142,7 +142,7 @@ Draft ──rate──► Quoted ──bind──► Bound ──issue──► 
 | `POST /rules/draft` | English text → validated rule JSON (Claude API, with fallback examples) |
 | `POST /rules/publish` | Save an approved rule (`approved: true` required; `replace: true` to reuse an id) |
 | `GET /rules/examples`, `POST /rules/{id}/disable` | Fallback examples; switch off a published rule |
-| `GET /dashboard/summary?product=` | Portfolio stats |
+| `GET /dashboard/summary?product=` | Quotes, policies, written premium, average premium, straight-through and referral rates, queue size, mixes by status, decision, risk band and product |
 
 **Rule assistant** (`app/assistant.py`): the AI only turns text into a rule.
 1. **Draft.** Claude is called with **structured outputs**, so the reply is JSON matching a flat draft schema: one `all`/`any` group, because structured outputs don't support recursive schemas. The field and product lists in that schema are generated from the product configs.

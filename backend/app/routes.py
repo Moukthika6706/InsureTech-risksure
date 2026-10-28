@@ -139,8 +139,23 @@ def underwrite_quote(quote_id: int, req: UnderwriteRequest, db: Session = Depend
 # ------------------------------------------------------- audit, policies
 
 @router.get("/audit", response_model=list[AuditEventOut], tags=["audit"])
-def recent_audit(limit: int = Query(100, ge=1, le=1000), db: Session = Depends(get_db)):
-    return db.scalars(select(AuditEvent).order_by(AuditEvent.id.desc()).limit(limit)).all()
+def recent_audit(limit: int = Query(100, ge=1, le=1000), product: Optional[str] = None,
+                 db: Session = Depends(get_db)):
+    """Most recent lifecycle events across all quotes (the dashboard's activity feed)."""
+    stmt = select(AuditEvent).join(Quote).order_by(AuditEvent.id.desc()).limit(limit)
+    if product:
+        stmt = stmt.where(Quote.product == product)
+    return [AuditEventOut.model_validate(e).model_copy(update={"quote_number": e.quote.quote_number,
+                                                               "product": e.quote.product})
+            for e in db.scalars(stmt)]
+
+
+@router.get("/dashboard/summary", tags=["dashboard"])
+def dashboard_summary(product: Optional[str] = None, db: Session = Depends(get_db)):
+    """Portfolio KPIs: volumes, written premium, straight-through and referral rates, mixes."""
+    if product:
+        _product(product)
+    return services.dashboard(db, product)
 
 
 @router.get("/policies", response_model=list[PolicyOut], tags=["policies"])

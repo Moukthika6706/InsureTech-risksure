@@ -37,6 +37,8 @@ class AuditEventOut(BaseModel):
     actor: str
     detail: dict
     created_at: datetime
+    quote_number: Optional[str] = None      # filled in for the cross-quote activity feed
+    product: Optional[str] = None
 
 
 class PolicyOut(BaseModel):

@@ -32,4 +32,26 @@ export const api = {
   rate: (product, applicant, coverages) => request('POST', '/rate', { product, applicant, coverages }),
   bind: (id) => request('POST', `/quotes/${id}/bind`, { actor: 'customer' }),
   issue: (id) => request('POST', `/quotes/${id}/issue`, { actor: 'customer' }),
+  quotes: (params = {}) => request('GET', `/quotes?${query(params)}`),
+
+  // Underwriting
+  queue: (product) => request('GET', `/underwriting/queue?${query({ product })}`),
+  underwrite: (id, body) => request('POST', `/quotes/${id}/underwrite`, body),
+
+  // Audit and portfolio
+  activity: (params = {}) => request('GET', `/audit?${query(params)}`),
+  dashboard: (product) => request('GET', `/dashboard/summary?${query({ product })}`),
+
+  // Rules and the plain-English assistant
+  rules: () => request('GET', '/rules'),
+  ruleExamples: () => request('GET', '/rules/examples'),
+  draftRule: (text, product) => request('POST', '/rules/draft', { text, product: product || null }),
+  previewRule: (rule) => request('POST', '/rules/preview', { rule }),
+  publishRule: (body) => request('POST', '/rules/publish', body),
+  disableRule: (id) => request('POST', `/rules/${id}/disable`),
+}
+
+// Query string from an object, skipping empty values.
+function query(params) {
+  return new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== '')).toString()
 }

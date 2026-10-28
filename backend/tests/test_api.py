@@ -189,3 +189,40 @@ def test_transition_table_directly(db_session):
 def test_policy_end_date_handles_leap_day():
     assert one_year_later(date(2026, 1, 15)) == date(2027, 1, 14)
     assert one_year_later(date(2028, 2, 29)) == date(2029, 2, 28)
+
+
+# -------------------------------------------------------------- dashboard
+
+def test_dashboard_summary(client):
+    assert client.get("/dashboard/summary").json()["quotes"] == 0
+    q = new_quote(client)                             # auto_approve
+    new_quote(client, YOUNG_SPORTS)                   # refer
+    new_quote(client, MANY_CLAIMS)                    # decline
+    client.post(f"/quotes/{q['id']}/bind")
+    client.post(f"/quotes/{q['id']}/issue")
+
+    d = client.get("/dashboard/summary").json()
+    assert (d["quotes"], d["policies"], d["in_queue"]) == (3, 1, 1)
+    assert d["written_premium"] == pytest.approx(q["premium"])
+    assert d["straight_through_rate"] == pytest.approx(1 / 3, abs=1e-4)
+    assert d["referral_rate"] == pytest.approx(1 / 3, abs=1e-4)
+    assert d["by_decision"] == {"auto_approve": 1, "refer": 1, "decline": 1}
+    assert d["by_status"] == {"issued": 1, "referred": 1, "declined": 1}
+    assert d["by_product"] == [{"product": "auto", "quotes": 3, "policies": 1, "written_premium": pytest.approx(q["premium"])}]
+
+    assert client.get("/dashboard/summary?product=home").json()["quotes"] == 0
+    assert client.get("/dashboard/summary?product=boat").status_code == 404
+
+
+def test_activity_feed_names_quotes(client):
+    q = new_quote(client)
+    feed = client.get("/audit?limit=5").json()
+    assert feed[0]["quote_number"] == q["quote_number"] and feed[0]["product"] == "auto"
+    assert client.get("/audit?product=home").json() == []
+
+
+def test_timestamps_carry_a_time_zone(client):
+    """SQLite drops time zones; the API must still say the times are UTC."""
+    q = new_quote(client)
+    assert q["created_at"].endswith(("Z", "+00:00"))
+    assert client.get(f"/quotes/{q['id']}/audit").json()[0]["created_at"].endswith(("Z", "+00:00"))

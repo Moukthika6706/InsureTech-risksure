@@ -56,7 +56,7 @@ React (Vite, Tailwind, Recharts)  ──REST/JSON──►  FastAPI
 
 **Stored in the database (SQLite)**
 - **Applicant**: `id`, `product`, `data` (JSON of the form fields), `source` (`sample` or `manual`), `created_at`.
-- **Quote**: `id`, `quote_number`, `product`, `applicant_id`, `status`, `base_premium`, `final_premium`, `breakdown` (JSON steps), `risk_score`, `risk_detail` (SHAP factors or scorecard points), `decision`, `rule_hits` (JSON), `override_premium`, `underwriter_note`, timestamps.
+- **Quote**: `id`, `quote_number` (e.g. `Q-AUT-000001`), `product`, `product_version`, `applicant_id`, `status`, `decision`, `coverages`, `base_premium`, `rated_premium` (after factors), `premium` (after loads), `override_premium` (underwriter), `final_premium` (override if set, else premium), `total_load_pct`, `breakdown` (JSON steps), `risk` (score, band, top SHAP factors or scorecard points), `rule_hits` (JSON), `underwriter_note`, timestamps. Policy numbers look like `P-AUT-2026-000001`; a policy runs one year less a day.
 - **Policy**: `id`, `policy_number`, `quote_id`, `product`, `premium`, `start_date`, `end_date` (one year later), `issued_at`.
 - **AuditEvent**: `id`, `quote_id`, `action`, `from_status`, `to_status`, `actor`, `detail` (JSON), `timestamp`. One is written for every state change.
 - **PublishedRule**: rules approved through the rule assistant: `rule` (JSON), `source_text`, `published_by`, `published_at`. These are stored in the DB because files on the deployed server get wiped on redeploy. The engine merges them with `rules.yaml`.
@@ -122,7 +122,7 @@ Draft ──rate──► Quoted ──bind──► Bound ──issue──► 
 ```
 - `rate` sends the quote to Declined if the decision is `decline`, to Referred if it is `refer`, otherwise to Quoted.
 - Declined and Issued are final states: nothing can move out of them.
-- Invalid transitions (e.g. Draft → Bound) return HTTP 409. Every transition writes an AuditEvent.
+- Invalid transitions (e.g. Draft → Bound) return HTTP 409. Every transition writes an AuditEvent in the same database transaction (`app/lifecycle.py` is the only code that changes a status). Invalid applicant data returns 422 with every field error listed. There is no login in this demo; `actor` is passed in the request.
 
 ## REST endpoints
 | Method & path | Purpose |
@@ -135,7 +135,7 @@ Draft ──rate──► Quoted ──bind──► Bound ──issue──► 
 | `POST /quotes/{id}/bind`, `POST /quotes/{id}/issue` | Lifecycle steps (issue creates a Policy) |
 | `GET /underwriting/queue` | Referred quotes |
 | `POST /quotes/{id}/underwrite` | `{action: approve \| decline, override_premium?, note}` |
-| `GET /quotes/{id}/audit` | Audit timeline for one quote |
+| `GET /quotes/{id}/audit`, `GET /audit` | Audit timeline for one quote / most recent events |
 | `GET /policies`, `GET /policies/{id}` | Issued policies |
 | `GET /rules` | Active rules (yaml + published) |
 | `POST /rules/preview` | Impact preview of a proposed rule |

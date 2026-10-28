@@ -26,7 +26,13 @@ fields:
   - name: no_claim_bonus_pct
     label: No Claim Bonus (NCB)
     type: select
-    options: [0, 20, 25, 35, 45, 50]
+    options:
+      - {value: 0, label: "0% (new or recent claim)"}
+      - {value: 20, label: "20% (1 claim-free year)"}
+      - {value: 25, label: "25% (2 years)"}
+      - {value: 35, label: "35% (3 years)"}
+      - {value: 45, label: "45% (4 years)"}
+      - {value: 50, label: "50% (5+ years)"}
     default: 0
     help: Discount earned for consecutive claim-free years (Indian NCB slabs).
     group: Driver
@@ -41,7 +47,13 @@ fields:
   - name: vehicle_type
     label: Vehicle type
     type: select
-    options: [hatchback, sedan, suv, mpv, ev, sports]
+    options:
+      - {value: hatchback, label: Hatchback}
+      - {value: sedan, label: Sedan}
+      - {value: suv, label: SUV}
+      - {value: mpv, label: MPV / people carrier}
+      - {value: ev, label: Electric (EV)}
+      - {value: sports, label: Sports car}
     default: hatchback
     group: Vehicle
   - {name: vehicle_age_years, label: Vehicle age (years), type: int, min: 0, max: 25, default: 3, group: Vehicle}
@@ -57,7 +69,9 @@ fields:
   - name: parking
     label: Overnight parking
     type: select
-    options: [garage, street]
+    options:
+      - {value: garage, label: Garage or covered}
+      - {value: street, label: On the street}
     default: garage
     group: Vehicle
   - {name: anti_theft_device, label: ARAI-approved anti-theft device, type: bool, default: false, group: Vehicle}

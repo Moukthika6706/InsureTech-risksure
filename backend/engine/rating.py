@@ -137,7 +137,7 @@ def _basis_text(product: Product, cov: Coverage, data: dict) -> str:
     amount = inr(data[cov.basis.field])
     if cov.basis.type == "percent_of":
         return f"{cov.rate:g}% of {label} ({amount})"
-    return f"{inr(cov.rate) if cov.rate >= 1 else f'₹{cov.rate:g}'} per ₹1,000 of {label} ({amount})"
+    return f"₹{cov.rate:g} per ₹1,000 of {label} ({amount})"   # keep decimals: ₹1.139, not ₹1"
 
 
 # ------------------------------------------------------------------ rate

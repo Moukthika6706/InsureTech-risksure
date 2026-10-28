@@ -1,0 +1,102 @@
+home:
+  base: 10
+  min: 0
+  max: 100
+  bands:
+    low: 25
+    medium: 40
+    high: 55
+  factors:
+    roof_type:
+      rcc_slab: 0
+      tiled: 8
+      metal_sheet: 6
+      asbestos: 14
+    construction:
+      rcc_frame: 0
+      steel: 2
+      load_bearing_brick: 8
+    flood_zone:
+      1: 0
+      2: 12
+      3: 25
+    building_age_years:
+    - - 10
+      - 0
+    - - 25
+      - 5
+    - - 40
+      - 10
+    - - 200
+      - 16
+    fire_station_km:
+    - - 2
+      - 0
+    - - 5
+      - 4
+    - - 10
+      - 9
+    - - 100
+      - 15
+    prior_claims:
+      per_claim: 8
+      max_claims_counted: 3
+    security:
+      alarm: -4
+      cctv: -3
+      gated_community: -5
+    occupancy:
+      owner_occupied: 0
+      rented_out: 6
+business:
+  base: 8
+  min: 0
+  max: 100
+  bands:
+    low: 25
+    medium: 40
+    high: 55
+  factors:
+    business_type:
+      it_office: 2
+      clinic: 6
+      retail_shop: 8
+      salon: 8
+      hotel_guesthouse: 12
+      warehouse: 16
+      restaurant: 18
+      manufacturing_unit: 20
+    flood_zone:
+      1: 0
+      2: 10
+      3: 20
+    building_age_years:
+    - - 10
+      - 0
+    - - 25
+      - 5
+    - - 40
+      - 10
+    - - 200
+      - 15
+    staff_count:
+    - - 10
+      - 0
+    - - 50
+      - 4
+    - - 200
+      - 8
+    - - 100000
+      - 12
+    prior_claims:
+      per_claim: 8
+      max_claims_counted: 3
+    fire_safety_certificate:
+      true: -6
+      false: 0
+    sprinklers:
+      true: -6
+      false: 0
+    handles_cash:
+      true: 4
+      false: 0

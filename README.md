@@ -6,7 +6,9 @@ A customer asks for a **quote**. RiskSure **rates** it (works out the price, ste
 
 > **All data, rates and models are synthetic and illustrative. This is not real actuarial pricing.** The applicants come from `data/generate_data.py` (fixed seed). The auto data's risk signal was deliberately strengthened so the demo model has a clear pattern to learn; see [Data and models](#data-and-models).
 
-**Live demo:** _frontend URL_ · **API docs:** _backend URL_/docs (added after deployment)
+**Live demo:** https://insure-tech-risksure.vercel.app · **API docs:** https://insuretech-risksure.onrender.com/docs
+
+> The API runs on Render's free plan, which sleeps after 15 idle minutes: the first request after a pause can take 30–60 s. Each restart re-creates the 400-quote demo book, so anything you add is reset.
 
 ---
 

@@ -31,7 +31,7 @@ export default function UnderwritingQueue({ onChange }) {
     <div>
       <PageHeader eyebrow="Underwriter workspace" title="Underwriting queue"
         description="Quotes the rules referred for a human decision. Approve (optionally at a different premium) or decline, with a reason for the audit trail."
-        actions={items && <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700">{items.length} waiting</span>} />
+        actions={items && <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">{items.length} waiting</span>} />
       <ProductFilter value={product} onChange={setProduct} />
 
       {done.length > 0 && (
@@ -51,26 +51,26 @@ export default function UnderwritingQueue({ onChange }) {
           : items.length === 0 ? (
             <EmptyState title="Inbox zero">Nothing is waiting. Every quote has been decided.</EmptyState>
           ) : items.map((q) => (
-            <Card key={q.id} className="p-6 transition hover:border-slate-300">
+            <Card key={q.id} className="p-6 transition hover:border-steel-300">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <a href={`#/quotes/${q.id}`} className="font-mono text-[15px] font-semibold text-indigo-700 hover:underline">{q.quote_number}</a>
-                    <span className="text-sm text-slate-500">{titleCase(q.product)} · referred {when(q.updated_at)}</span>
+                    <a href={`#/quotes/${q.id}`} className="font-mono text-[15px] font-semibold text-brand-700 hover:underline">{q.quote_number}</a>
+                    <span className="text-sm text-steel-500">{titleCase(q.product)} · referred {when(q.updated_at)}</span>
                   </div>
-                  <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                  <ul className="mt-2 space-y-1 text-sm text-steel-700">
                     {q.rule_hits.filter((h) => h.action !== 'load').map((h) => <li key={h.id}>• {h.reason}</li>)}
                   </ul>
                 </div>
                 <div className="text-right">
-                  <p className="font-display text-2xl font-bold tabular-nums text-slate-900">{inr(q.premium)}</p>
+                  <p className="font-display text-3xl font-light tabular-nums text-steel-900">{inr(q.premium)}</p>
                   <Badge tone={BAND_TONE[q.risk_band]}>{sentenceCase(q.risk_band)} risk</Badge>
                 </div>
               </div>
-              <div className="mt-4 border-t border-slate-100 pt-4">
+              <div className="mt-4 border-t border-steel-100 pt-4">
                 {open === q.id
                   ? <UnderwriteForm quote={q} onDone={decided} />
-                  : <button className="text-sm font-semibold text-indigo-600 hover:underline" onClick={() => setOpen(q.id)}>Review and decide →</button>}
+                  : <button className="text-sm font-semibold text-brand-600 hover:underline" onClick={() => setOpen(q.id)}>Review and decide →</button>}
               </div>
             </Card>
           ))}

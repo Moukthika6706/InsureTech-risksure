@@ -44,7 +44,7 @@ export default function UnderwriteForm({ quote, onDone }) {
 
   const choice = (value, label, tone) => (
     <button type="button" role="radio" aria-checked={action === value} onClick={() => setAction(value)}
-      className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${action === value ? tone : 'border-slate-300 bg-white text-slate-700'}`}>
+      className={`rounded-full border px-4 py-1.5 text-sm font-medium ${action === value ? tone : 'border-steel-300 bg-white text-steel-700'}`}>
       {label}
     </button>
   )
@@ -60,20 +60,20 @@ export default function UnderwriteForm({ quote, onDone }) {
           <label htmlFor={`ov-${quote.id}`} className="block text-sm font-medium">Premium override (optional)</label>
           <input id={`ov-${quote.id}`} type="number" min="1" step="1" value={override} onChange={(e) => setOverride(e.target.value)}
             placeholder={`System price ${inr(quote.premium)}`}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm sm:w-64" />
+            className="mt-1 w-full rounded-xl border border-steel-300 bg-white px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100 sm:w-64" />
         </div>
       )}
       <div>
         <label htmlFor={`note-${quote.id}`} className="block text-sm font-medium">Reason for your decision</label>
         <textarea id={`note-${quote.id}`} rows={2} required minLength={3} value={note} onChange={(e) => setNote(e.target.value)}
           placeholder="e.g. Parent is the main driver; accept with a higher premium"
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          className="mt-1 w-full rounded-xl border border-steel-300 bg-white px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100" />
       </div>
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor={`uw-${quote.id}`} className="block text-sm font-medium">Your name</label>
           <input id={`uw-${quote.id}`} value={name} onChange={(e) => setName(e.target.value)} placeholder="underwriter"
-            className="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            className="mt-1 rounded-xl border border-steel-300 bg-white px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100" />
         </div>
         <Button type="submit" disabled={busy || note.trim().length < 3}>
           {busy ? 'Saving…' : action === 'approve' ? 'Approve quote' : 'Decline quote'}

@@ -10,7 +10,7 @@ import WhatIf from '../components/WhatIf'
 import { DECISIONS, inr, sentenceCase, titleCase } from '../format'
 
 const PRODUCT_ICON = { auto: 'car', home: 'home', business: 'business' }
-const BAND = { green: 'from-emerald-500 to-teal-400', amber: 'from-amber-400 to-orange-400', blue: 'from-sky-500 to-indigo-500', red: 'from-rose-500 to-red-400' }
+const BAND = { green: 'from-emerald-500 to-teal-400', amber: 'from-amber-400 to-orange-400', blue: 'from-sky-500 to-brand-500', red: 'from-rose-500 to-red-400' }
 const RISK_TONE = { low: 'green', medium: 'amber', high: 'red', very_high: 'red' }
 
 // Quote result: decision, premium, how it was built, why, and the next lifecycle step.
@@ -68,20 +68,20 @@ export default function QuoteResult({ quoteId }) {
         <div className="p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="flex gap-4">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-indigo-50 text-indigo-600">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-600">
                 <Icon name={PRODUCT_ICON[quote.product] || 'shield'} className="h-6 w-6" />
               </span>
               <div>
-                <p className="text-sm text-slate-500">{titleCase(quote.product)} · <span className="font-mono text-slate-600">{quote.quote_number}</span></p>
-                <h1 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">{d.label}</h1>
-                <p className="mt-1.5 max-w-lg text-slate-600">{message}</p>
+                <p className="text-sm text-steel-500">{titleCase(quote.product)} · <span className="font-mono text-steel-600">{quote.quote_number}</span></p>
+                <h1 className="mt-1 text-3xl font-light text-steel-950 sm:text-4xl">{d.label}</h1>
+                <p className="mt-1.5 max-w-lg text-steel-600">{message}</p>
               </div>
             </div>
             <div className="sm:text-right">
-              <p className="text-sm font-medium text-slate-500">Annual premium</p>
-              <p className="font-display text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{inr(quote.final_premium)}</p>
+              <p className="text-sm font-medium text-steel-500">Annual premium</p>
+              <p className="font-display text-5xl font-light tracking-tight text-steel-900 sm:text-6xl">{inr(quote.final_premium)}</p>
               {quote.override_premium != null && (
-                <p className="mt-1 text-xs text-slate-500">Set by underwriter · system price {inr(quote.premium)}</p>
+                <p className="mt-1 text-xs text-steel-500">Set by underwriter · system price {inr(quote.premium)}</p>
               )}
               {quote.total_load_pct !== 0 && quote.override_premium == null && (
                 <p className="mt-1 text-xs font-medium text-amber-700">Includes {quote.total_load_pct > 0 ? '+' : ''}{quote.total_load_pct}% underwriting loading</p>
@@ -103,11 +103,11 @@ export default function QuoteResult({ quoteId }) {
           <Panel title={titled('Risk assessment')}>
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="font-display text-3xl font-bold text-slate-900">
+                <p className="font-display text-4xl font-light text-steel-900">
                   {risk.method === 'ml_model' ? `${(risk.risk_score * 100).toFixed(1)}%` : risk.risk_score}
-                  <span className="ml-1 text-sm font-medium text-slate-400">{risk.method === 'ml_model' ? 'claim chance' : '/ 100 points'}</span>
+                  <span className="ml-1 text-sm font-medium text-steel-400">{risk.method === 'ml_model' ? 'claim chance' : '/ 100 points'}</span>
                 </p>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-steel-500">
                   {risk.method === 'ml_model' ? `Average driver ${(risk.baseline * 100).toFixed(1)}% · ML model with SHAP` : 'Transparent points scorecard'}
                 </p>
               </div>
@@ -119,20 +119,20 @@ export default function QuoteResult({ quoteId }) {
           <Panel title={titled('Underwriting rules')}>
             {view.hits.length === 0
               ? (
-                <p className="flex items-center gap-2 text-sm text-slate-600">
+                <p className="flex items-center gap-2 text-sm text-steel-600">
                   <Icon name="check" className="h-4 w-4 text-emerald-600" strokeWidth={2.2} />No rules applied. Decided automatically.
                 </p>
               ) : (
                 <ul className="space-y-3 text-sm">
                   {view.hits.map((h) => (
-                    <li key={h.id} className="rounded-xl bg-slate-50 p-3">
+                    <li key={h.id} className="rounded-xl bg-steel-50 p-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge tone={{ decline: 'red', refer: 'blue', load: 'amber' }[h.action]}>
                           {h.action === 'load' ? `${h.load_pct > 0 ? '+' : ''}${h.load_pct}%` : h.action}
                         </Badge>
-                        <span className="font-medium text-slate-900">{h.description}</span>
+                        <span className="font-medium text-steel-900">{h.description}</span>
                       </div>
-                      <p className="mt-1 text-slate-600">{h.reason}</p>
+                      <p className="mt-1 text-steel-600">{h.reason}</p>
                     </li>
                   ))}
                 </ul>
@@ -149,7 +149,7 @@ export default function QuoteResult({ quoteId }) {
       )}
 
       {product && (
-        <Panel title={<span className="flex items-center gap-2"><Icon name="sparkles" className="h-5 w-5 text-indigo-600" />What-if simulator</span>}
+        <Panel title={<span className="flex items-center gap-2"><Icon name="sparkles" className="h-5 w-5 text-brand-600" />What-if simulator</span>}
           description="Change any answer to see how the price, risk score and decision would change. Nothing is saved.">
           <WhatIf product={product} applicant={quote.applicant} coverages={quote.coverages.map((c) => c.code)}
             basePremium={quote.premium} onResult={setWhatIf} />
@@ -167,17 +167,17 @@ function Lifecycle({ quote, busy, onBind, onIssue }) {
   const steps = ['Quoted', 'Bound', 'Issued']
   const reached = ['quoted', 'bound', 'issued'].indexOf(quote.status)
   return (
-    <div className="mt-8 flex flex-wrap items-center justify-between gap-5 border-t border-slate-100 pt-6">
+    <div className="mt-8 flex flex-wrap items-center justify-between gap-5 border-t border-steel-100 pt-6">
       <ol className="flex items-center" aria-label="Policy progress">
         {steps.map((label, i) => (
           <li key={label} className="flex items-center">
             <span className="flex items-center gap-2">
-              <span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${i <= reached ? 'bg-indigo-600 text-white' : 'border-2 border-slate-200 bg-white text-slate-400'}`}>
+              <span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${i <= reached ? 'bg-brand-600 text-white' : 'border-2 border-steel-200 bg-white text-steel-400'}`}>
                 {i < reached ? '✓' : i + 1}
               </span>
-              <span className={`text-sm font-medium ${i <= reached ? 'text-slate-900' : 'text-slate-400'}`}>{label}</span>
+              <span className={`text-sm font-medium ${i <= reached ? 'text-steel-900' : 'text-steel-400'}`}>{label}</span>
             </span>
-            {i < steps.length - 1 && <span className={`mx-2 h-0.5 w-5 rounded sm:mx-3 sm:w-14 ${i < reached ? 'bg-indigo-600' : 'bg-slate-200'}`} />}
+            {i < steps.length - 1 && <span className={`mx-2 h-0.5 w-5 rounded sm:mx-3 sm:w-14 ${i < reached ? 'bg-brand-600' : 'bg-steel-200'}`} />}
           </li>
         ))}
       </ol>

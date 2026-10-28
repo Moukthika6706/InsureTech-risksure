@@ -51,10 +51,10 @@ export default function Waterfall({ steps, premium, highlight }) {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Legend />
-        <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs" role="tablist" aria-label="Breakdown view">
+        <div className="inline-flex rounded-lg bg-steel-100 p-0.5 text-xs" role="tablist" aria-label="Breakdown view">
           {['chart', 'table'].map((v) => (
             <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}
-              className={`rounded-md px-2.5 py-1 font-medium capitalize ${view === v ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}>
+              className={`rounded-md px-2.5 py-1 font-medium capitalize ${view === v ? 'bg-white shadow-sm text-steel-900' : 'text-steel-500'}`}>
               {v}
             </button>
           ))}
@@ -62,7 +62,7 @@ export default function Waterfall({ steps, premium, highlight }) {
       </div>
 
       {view === 'chart' ? (
-        <div className={`mt-3 rounded-lg p-2 ${highlight ? 'ring-2 ring-indigo-200' : ''}`}>
+        <div className={`mt-3 rounded-lg p-2 ${highlight ? 'ring-2 ring-brand-200' : ''}`}>
           <ResponsiveContainer width="100%" height={rows.length * 30 + 36}>
             <BarChart data={rows} layout="vertical" margin={{ top: 4, right: narrow ? 48 : 64, bottom: 4, left: 0 }} barCategoryGap={2}>
               <XAxis type="number" tickFormatter={compact} tick={{ fontSize: 11, fill: '#64748b' }}
@@ -78,7 +78,7 @@ export default function Waterfall({ steps, premium, highlight }) {
             </BarChart>
           </ResponsiveContainer>
           {neutral > 0 && (
-            <p className="mt-1 text-xs text-slate-500">{neutral} step{neutral > 1 ? 's' : ''} at ×1 (no effect) not drawn; see the table.</p>
+            <p className="mt-1 text-xs text-steel-500">{neutral} step{neutral > 1 ? 's' : ''} at ×1 (no effect) not drawn; see the table.</p>
           )}
         </div>
       ) : (
@@ -91,7 +91,7 @@ export default function Waterfall({ steps, premium, highlight }) {
 function Legend() {
   const items = [['level', 'Cover & premium'], ['up', 'Raises price'], ['down', 'Lowers price']]
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-steel-600">
       {items.map(([k, label]) => (
         <li key={k} className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm" style={{ background: COLORS[k] }} aria-hidden="true" />
@@ -116,16 +116,16 @@ function StepTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
   const r = payload[0].payload
   return (
-    <div className="max-w-64 rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-lg">
-      <p className="font-semibold text-slate-900">{r.label}</p>
-      {r.detail && <p className="mt-0.5 text-slate-500">{r.detail}</p>}
+    <div className="max-w-64 rounded-lg border border-steel-200 bg-white p-3 text-xs shadow-lg">
+      <p className="font-semibold text-steel-900">{r.label}</p>
+      {r.detail && <p className="mt-0.5 text-steel-500">{r.detail}</p>}
       {!r.isTotal && (
-        <p className="mt-2 text-slate-700">
+        <p className="mt-2 text-steel-700">
           {KIND_TEXT[r.kind]}{r.multiplier != null && <> · ×{r.multiplier}</>} ·{' '}
           <b>{r.change > 0 ? '+' : '−'}{inr(Math.abs(r.change))}</b>
         </p>
       )}
-      <p className="mt-1 text-slate-700">{r.isTotal ? 'Annual premium' : 'Running total'}: <b>{inr(r.total)}</b></p>
+      <p className="mt-1 text-steel-700">{r.isTotal ? 'Annual premium' : 'Running total'}: <b>{inr(r.total)}</b></p>
     </div>
   )
 }
@@ -136,12 +136,12 @@ export function BreakdownTable({ steps, premium }) {
       <caption className="sr-only">Premium breakdown, step by step</caption>
       <tbody>
         {steps.map((s) => (
-          <tr key={`${s.step}-${s.code}`} className="border-b border-slate-100 align-top">
+          <tr key={`${s.step}-${s.code}`} className="border-b border-steel-100 align-top">
             <td className="py-2 pr-2">
               <span className="font-medium">{s.label}</span>
-              <span className="block text-xs text-slate-500">{s.detail}</span>
+              <span className="block text-xs text-steel-500">{s.detail}</span>
             </td>
-            <td className="py-2 text-right text-slate-500">{s.multiplier != null ? `×${s.multiplier}` : ''}</td>
+            <td className="py-2 text-right text-steel-500">{s.multiplier != null ? `×${s.multiplier}` : ''}</td>
             <td className={`py-2 pl-3 text-right tabular-nums ${s.amount_change < 0 ? 'text-blue-700' : ''}`}>
               {s.amount_change === 0 ? '—' : `${s.amount_change > 0 ? '+' : '−'}${inr(Math.abs(s.amount_change))}`}
             </td>

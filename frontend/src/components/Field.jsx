@@ -4,8 +4,8 @@
 import { inrWords, isMoneyField } from '../format'
 
 const inputClass = (error) =>
-  `mt-1.5 block h-11 w-full rounded-xl border bg-white px-3.5 text-[15px] text-slate-900 shadow-sm transition focus:outline-none focus:ring-4 ${
-    error ? 'border-rose-400 focus:ring-rose-100' : 'border-slate-300 hover:border-slate-400 focus:border-indigo-500 focus:ring-indigo-100'
+  `mt-1.5 block h-11 w-full rounded-xl border bg-white px-3.5 text-[15px] text-steel-900 shadow-sm transition focus:outline-none focus:ring-4 ${
+    error ? 'border-rose-400 focus:ring-rose-100' : 'border-steel-300 hover:border-steel-400 focus:border-brand-500 focus:ring-brand-100'
   }`
 
 export default function Field({ field, value, onChange, error }) {
@@ -19,7 +19,7 @@ export default function Field({ field, value, onChange, error }) {
   if (field.type === 'bool') {
     input = (
       <button type="button" role="switch" aria-checked={!!value} id={id} onClick={() => onChange(!value)}
-        className={`mt-2 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${value ? 'bg-indigo-600' : 'bg-slate-300'}`}>
+        className={`mt-2 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${value ? 'bg-brand-600' : 'bg-steel-300'}`}>
         <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
       </button>
     )
@@ -31,7 +31,7 @@ export default function Field({ field, value, onChange, error }) {
           const on = String(o.value) === String(value)
           return (
             <button type="button" key={String(o.value)} role="radio" aria-checked={on} onClick={() => onChange(o.value)}
-              className={`min-h-11 rounded-xl border px-4 py-2 text-sm transition ${on ? 'border-indigo-600 bg-indigo-50 font-semibold text-indigo-700 ring-1 ring-indigo-600' : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'}`}>
+              className={`min-h-11 rounded-xl border px-4 py-2 text-sm transition ${on ? 'border-brand-600 bg-brand-50 font-semibold text-brand-700 ring-1 ring-brand-600' : 'border-steel-300 bg-white text-steel-700 hover:border-steel-400'}`}>
               {o.label}
             </button>
           )
@@ -55,10 +55,10 @@ export default function Field({ field, value, onChange, error }) {
 
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-semibold text-slate-800">{field.label}</label>
+      <label htmlFor={id} className="block text-sm font-semibold text-steel-800">{field.label}</label>
       {input}
       {error ? <p className="mt-1.5 text-xs font-medium text-rose-600">{error}</p>
-        : hint.length > 0 && <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{hint.join(' ')}</p>}
+        : hint.length > 0 && <p className="mt-1.5 text-xs leading-relaxed text-steel-500">{hint.join(' ')}</p>}
     </div>
   )
 }

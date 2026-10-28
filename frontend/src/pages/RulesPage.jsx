@@ -105,12 +105,12 @@ export default function RulesPage() {
 
       <Card className="p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 font-semibold"><Icon name="sparkles" className="h-5 w-5 text-indigo-600" />Rule assistant</h2>
-          <ol className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500" aria-label="How publishing works">
+          <h2 className="flex items-center gap-2 font-semibold"><Icon name="sparkles" className="h-5 w-5 text-brand-600" />Rule assistant</h2>
+          <ol className="flex flex-wrap items-center gap-2 text-xs font-medium text-steel-500" aria-label="How publishing works">
             {['Describe in English', 'Engine validates + previews', 'You approve and publish'].map((s, i) => (
               <li key={s} className="flex items-center gap-2">
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-slate-900 text-[11px] font-bold text-white">{i + 1}</span>{s}
-                {i < 2 && <span className="text-slate-300">→</span>}
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-steel-900 text-[11px] font-bold text-white">{i + 1}</span>{s}
+                {i < 2 && <span className="text-steel-300">→</span>}
               </li>
             ))}
           </ol>
@@ -119,11 +119,11 @@ export default function RulesPage() {
           <label htmlFor="rule-text" className="sr-only">Rule in plain English</label>
           <textarea id="rule-text" rows={2} value={text} onChange={(e) => setText(e.target.value)} required minLength={5} maxLength={500}
             placeholder="e.g. Refer anyone under 21 who drives a sports car"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-[15px] shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" />
+            className="w-full rounded-xl border border-steel-300 px-4 py-3 text-[15px] shadow-sm focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100" />
           <div className="flex flex-wrap items-center gap-3">
-            <label htmlFor="rule-product" className="text-sm text-slate-600">Product</label>
+            <label htmlFor="rule-product" className="text-sm text-steel-600">Product</label>
             <select id="rule-product" value={product} onChange={(e) => setProduct(e.target.value)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              className="rounded-lg border border-steel-300 px-3 py-2 text-sm">
               <option value="">Let the assistant decide</option>
               {products.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
             </select>
@@ -132,9 +132,9 @@ export default function RulesPage() {
         </form>
         {examples.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
-            <span className="text-slate-500">Try:</span>
+            <span className="text-steel-500">Try:</span>
             {examples.slice(0, 4).map((ex) => (
-              <button key={ex.text} onClick={() => setText(ex.text)} className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 hover:bg-slate-200">{ex.text}</button>
+              <button key={ex.text} onClick={() => setText(ex.text)} className="rounded-full bg-steel-100 px-2.5 py-1 text-steel-700 hover:bg-steel-200">{ex.text}</button>
             ))}
           </div>
         )}
@@ -156,16 +156,16 @@ export default function RulesPage() {
               : <Badge tone="amber">AI unavailable: pre-written example</Badge>}
             {draft.attempts > 1 && <Badge>repaired after validation</Badge>}
           </div>
-          {draft.notes && <p className="mt-2 text-sm text-slate-600">{draft.notes}</p>}
+          {draft.notes && <p className="mt-2 text-sm text-steel-600">{draft.notes}</p>}
           {!draft.feasible && (
-            <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm">The assistant could not express this with RiskSure's data, so no rule was drafted.</p>
+            <p className="mt-3 rounded-lg bg-steel-50 p-3 text-sm">The assistant could not express this with RiskSure's data, so no rule was drafted.</p>
           )}
           {draft.source === 'fallback' && draft.examples.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              <span className="text-slate-500">Other examples:</span>
+              <span className="text-steel-500">Other examples:</span>
               {draft.examples.map((ex) => (
                 <button key={ex.rule.id} onClick={() => run('preview', async () => { showRule(ex.rule, await api.previewRule(ex.rule)) })}
-                  className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 hover:bg-slate-200">{ex.text}</button>
+                  className="rounded-full bg-steel-100 px-2.5 py-1 text-steel-700 hover:bg-steel-200">{ex.text}</button>
               ))}
             </div>
           )}
@@ -173,37 +173,37 @@ export default function RulesPage() {
           {ruleJson && (
             <div className="mt-4 grid gap-5 lg:grid-cols-2">
               <div>
-                {currentRule && <p className="rounded-lg bg-indigo-50 p-3 text-sm font-medium text-indigo-900">{ruleSentence(currentRule)}</p>}
+                {currentRule && <p className="rounded-lg bg-brand-50 p-3 text-sm font-medium text-brand-900">{ruleSentence(currentRule)}</p>}
                 {draft.errors?.length > 0 && <ErrorBox error={{ message: 'This draft did not pass validation. Edit it below.', errors: draft.errors }} />}
                 <label htmlFor="rule-json" className="mt-3 block text-sm font-medium">Rule (you can edit it)</label>
                 <textarea id="rule-json" rows={16} spellCheck={false} value={ruleJson}
                   onChange={(e) => { setRuleJson(e.target.value); setPreview(null); setReviewed(false) }}
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs" />
+                  className="mt-1 w-full rounded-lg border border-steel-300 bg-steel-50 px-3 py-2 font-mono text-xs" />
                 <Button variant="secondary" className="mt-2" onClick={onPreview} disabled={busy !== ''}>
                   {busy === 'preview' ? 'Checking…' : 'Validate and preview impact'}
                 </Button>
               </div>
               <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Impact on the sample book</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-steel-500">Impact on the sample book</h3>
                 <div className="mt-3">
                   {busy === 'preview' ? <Spinner label="Running the rule on the sample book…" />
                     : preview ? <RulePreview preview={preview} />
-                    : <p className="text-sm text-slate-600">Run the preview to see the impact before publishing.</p>}
+                    : <p className="text-sm text-steel-600">Run the preview to see the impact before publishing.</p>}
                 </div>
               </div>
             </div>
           )}
 
           {preview && (
-            <div className="mt-6 space-y-3 border-t border-slate-100 pt-5">
+            <div className="mt-6 space-y-3 border-t border-steel-100 pt-5">
               <label className="flex items-start gap-2 text-sm">
-                <input type="checkbox" className="mt-0.5 h-4 w-4 accent-indigo-600" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />
+                <input type="checkbox" className="mt-0.5 h-4 w-4 accent-brand-600" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />
                 I have reviewed this rule and its impact preview, and approve publishing it.
               </label>
               <div className="flex flex-wrap items-end gap-3">
                 <div>
                   <label htmlFor="publisher" className="block text-sm font-medium">Your name</label>
-                  <input id="publisher" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+                  <input id="publisher" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 rounded-lg border border-steel-300 px-3 py-2 text-sm" />
                 </div>
                 <Button onClick={() => onPublish(false)} disabled={!reviewed || name.trim().length < 2 || busy !== ''}>
                   {busy === 'publish' ? 'Publishing…' : 'Publish rule'}
@@ -217,21 +217,21 @@ export default function RulesPage() {
 
       <Card className="p-6">
         <h2 className="font-semibold">Active rules</h2>
-        <p className="mt-1 text-sm text-slate-600">From config/rules.yaml, plus rules published here (stored in the database).</p>
+        <p className="mt-1 text-sm text-steel-600">From config/rules.yaml, plus rules published here (stored in the database).</p>
         {!rules ? <Spinner label="Loading rules…" /> : (
-          <ul className="mt-4 divide-y divide-slate-100">
+          <ul className="mt-4 divide-y divide-steel-100">
             {rules.map((r) => (
               <li key={r.id} className={`py-3 ${r.enabled === false ? 'opacity-50' : ''}`}>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={ACTION_TONE[r.action]}>{r.action === 'load' ? `${r.load_pct > 0 ? '+' : ''}${r.load_pct}%` : r.action}</Badge>
                   <span className="font-medium">{r.description}</span>
-                  <span className="text-xs text-slate-500">{r.product === '*' ? 'All products' : titleCase(r.product)}</span>
+                  <span className="text-xs text-steel-500">{r.product === '*' ? 'All products' : titleCase(r.product)}</span>
                   {r.source === 'published'
                     ? <Badge tone="indigo">Published by {r.published_by}, {when(r.published_at)}</Badge>
                     : <Badge>rules.yaml</Badge>}
                   {r.enabled === false && <Badge>Disabled</Badge>}
                 </div>
-                <p className="mt-1 text-sm text-slate-600">{ruleSentence(r)}</p>
+                <p className="mt-1 text-sm text-steel-600">{ruleSentence(r)}</p>
                 {r.source === 'published' && r.enabled !== false && (
                   <button onClick={() => onDisable(r.id)} className="mt-1 text-xs text-rose-700 hover:underline">Disable</button>
                 )}

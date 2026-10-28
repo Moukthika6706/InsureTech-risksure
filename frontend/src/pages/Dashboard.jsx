@@ -33,7 +33,7 @@ export default function Dashboard() {
         {error ? <ErrorBox error={error} />
           : !data ? <Spinner label="Loading portfolio…" />
           : data.summary.quotes === 0 ? (
-            <EmptyState title="No quotes yet"><a href="#/" className="font-medium text-indigo-600 underline">Create one</a> to see the portfolio fill in.</EmptyState>
+            <EmptyState title="No quotes yet"><a href="#/" className="font-medium text-brand-600 underline">Create one</a> to see the portfolio fill in.</EmptyState>
           ) : <Body {...data} />}
       </div>
     </div>
@@ -57,7 +57,7 @@ function Body({ summary: s, quotes, activity }) {
       <div className="grid gap-5 lg:grid-cols-2">
         <Card className="p-6">
           <h2 className="font-semibold">Automatic decisions</h2>
-          <p className="text-xs text-slate-500">What the rules decided at quote time, before any underwriter review.</p>
+          <p className="text-xs text-steel-500">What the rules decided at quote time, before any underwriter review.</p>
           <Bars rows={decisions} total={s.quotes} color={(d) => DECISION_COLOR[d]} label={(d) => DECISIONS[d].label} />
         </Card>
         <Card className="p-6">
@@ -70,10 +70,10 @@ function Body({ summary: s, quotes, activity }) {
         <Card className="p-6">
           <h2 className="font-semibold">By product</h2>
           <table className="mt-3 w-full text-sm">
-            <thead><tr className="text-left text-xs text-slate-500"><th className="py-1 font-medium">Product</th><th className="py-1 text-right font-medium">Quotes</th><th className="py-1 text-right font-medium">Policies</th><th className="py-1 text-right font-medium">Written premium</th></tr></thead>
+            <thead><tr className="text-left text-xs text-steel-500"><th className="py-1 font-medium">Product</th><th className="py-1 text-right font-medium">Quotes</th><th className="py-1 text-right font-medium">Policies</th><th className="py-1 text-right font-medium">Written premium</th></tr></thead>
             <tbody>
               {s.by_product.map((p) => (
-                <tr key={p.product} className="border-t border-slate-100">
+                <tr key={p.product} className="border-t border-steel-100">
                   <td className="py-1.5">{titleCase(p.product)}</td>
                   <td className="py-1.5 text-right tabular-nums">{p.quotes.toLocaleString('en-IN')}</td>
                   <td className="py-1.5 text-right tabular-nums">{p.policies.toLocaleString('en-IN')}</td>
@@ -88,12 +88,12 @@ function Body({ summary: s, quotes, activity }) {
       <div className="grid gap-5 lg:grid-cols-2">
         <Card className="p-6">
           <h2 className="font-semibold">Recent quotes</h2>
-          <ul className="mt-3 divide-y divide-slate-100 text-sm">
+          <ul className="mt-3 divide-y divide-steel-100 text-sm">
             {quotes.map((q) => (
               <li key={q.id} className="flex items-center justify-between gap-3 py-2">
                 <span>
-                  <a href={`#/quotes/${q.id}`} className="font-medium text-indigo-700 hover:underline">{q.quote_number}</a>
-                  <span className="ml-2 text-xs text-slate-500">{titleCase(q.product)} · {when(q.created_at)}</span>
+                  <a href={`#/quotes/${q.id}`} className="font-medium text-brand-700 hover:underline">{q.quote_number}</a>
+                  <span className="ml-2 text-xs text-steel-500">{titleCase(q.product)} · {when(q.created_at)}</span>
                 </span>
                 <span className="flex items-center gap-2">
                   <span className="tabular-nums">{inr(q.final_premium)}</span>
@@ -108,9 +108,9 @@ function Body({ summary: s, quotes, activity }) {
           <ul className="mt-3 space-y-2 text-sm">
             {activity.map((e) => (
               <li key={e.id} className="flex flex-wrap items-baseline gap-x-2">
-                <a href={`#/quotes/${e.quote_id}`} className="font-medium text-indigo-700 hover:underline">{e.quote_number}</a>
-                <span className="text-slate-700">{e.action}{e.from_status ? ` ${e.from_status} → ${e.to_status}` : ''}</span>
-                <span className="text-xs text-slate-500">by {e.actor} · {when(e.created_at)}</span>
+                <a href={`#/quotes/${e.quote_id}`} className="font-medium text-brand-700 hover:underline">{e.quote_number}</a>
+                <span className="text-steel-700">{e.action}{e.from_status ? ` ${e.from_status} → ${e.to_status}` : ''}</span>
+                <span className="text-xs text-steel-500">by {e.actor} · {when(e.created_at)}</span>
               </li>
             ))}
           </ul>
@@ -128,10 +128,10 @@ function Bars({ rows, total, color, label }) {
       {rows.map(([key, n]) => (
         <li key={key} className="text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-700">{label(key)}</span>
-            <span className="tabular-nums text-slate-600">{n.toLocaleString('en-IN')} <span className="text-slate-400">({pct(total ? n / total : 0)})</span></span>
+            <span className="text-steel-700">{label(key)}</span>
+            <span className="tabular-nums text-steel-600">{n.toLocaleString('en-IN')} <span className="text-steel-400">({pct(total ? n / total : 0)})</span></span>
           </div>
-          <div className="mt-1 h-2 rounded-full bg-slate-100">
+          <div className="mt-1 h-2 rounded-full bg-steel-100">
             <div className="h-2 rounded-full" style={{ width: `${(n / max) * 100}%`, background: color(key) }} />
           </div>
         </li>

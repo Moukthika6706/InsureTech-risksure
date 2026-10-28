@@ -12,7 +12,7 @@ export default function ProductFilter({ value, onChange }) {
     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Product">
       {options.map((p) => (
         <button key={p.code} role="radio" aria-checked={value === p.code} onClick={() => onChange(p.code)}
-          className={`rounded-full px-3 py-1 text-sm ${value === p.code ? 'bg-indigo-600 font-medium text-white' : 'bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50'}`}>
+          className={`rounded-full px-3 py-1 text-sm ${value === p.code ? 'bg-brand-600 font-medium text-white' : 'bg-white text-steel-700 ring-1 ring-steel-300 hover:bg-steel-50'}`}>
           {p.name}
         </button>
       ))}

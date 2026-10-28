@@ -17,11 +17,11 @@ export default function RiskFactors({ factors, unit }) {
           return (
             <li key={f.field} className="text-sm">
               <div className="flex justify-between gap-3">
-                <span className="text-slate-800">{f.label} <span className="text-slate-500">· {readable(f.field, f.value)}</span></span>
-                <span className="shrink-0 text-xs text-slate-600">{up ? '▲ raises' : '▼ lowers'}</span>
+                <span className="text-steel-800">{f.label} <span className="text-steel-500">· {readable(f.field, f.value)}</span></span>
+                <span className="shrink-0 text-xs text-steel-600">{up ? '▲ raises' : '▼ lowers'}</span>
               </div>
-              <div className="relative mt-1 h-2 rounded-full bg-slate-100" aria-hidden="true">
-                <span className="absolute inset-y-[-2px] left-1/2 w-px bg-slate-400" />
+              <div className="relative mt-1 h-2 rounded-full bg-steel-100" aria-hidden="true">
+                <span className="absolute inset-y-[-2px] left-1/2 w-px bg-steel-400" />
                 <span className="absolute inset-y-0 rounded-full"
                   style={{ background: up ? UP : DOWN, width, [up ? 'left' : 'right']: '50%' }} />
               </div>
@@ -29,7 +29,7 @@ export default function RiskFactors({ factors, unit }) {
           )
         })}
       </ul>
-      <p className="mt-3 text-xs text-slate-500">
+      <p className="mt-3 text-xs text-steel-500">
         {unit === 'points'
           ? 'Bar length = scorecard points added or removed.'
           : 'Bar length = SHAP contribution: how much each answer moved the predicted claim chance for this applicant.'}

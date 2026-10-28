@@ -1,30 +1,74 @@
 @import "tailwindcss";
 
-/* Design tokens. Brand = indigo (Tailwind's indigo scale); fonts loaded in index.html. */
+/* Design tokens: an editorial look. Cool steel neutrals, one electric-blue
+   accent ("brand"), light and tightly set display type. Fonts load in index.html. */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dce6ff;
+  --color-brand-200: #bfd1ff;
+  --color-brand-300: #93b2ff;
+  --color-brand-400: #5f8bff;
+  --color-brand-500: #3a6bff;
+  --color-brand-600: #2453f0;
+  --color-brand-700: #1c41d0;
+  --color-brand-800: #1d37a8;
+  --color-brand-900: #1d3285;
+
+  --color-steel-50: #f3f5f7;
+  --color-steel-100: #e5eaee;
+  --color-steel-200: #ccd5dd;
+  --color-steel-300: #a7b5c2;
+  --color-steel-400: #7d90a2;
+  --color-steel-500: #5f7487;
+  --color-steel-600: #4b5d6e;
+  --color-steel-700: #3d4c5a;
+  --color-steel-800: #2c3843;
+  --color-steel-900: #1c252e;
+  --color-steel-950: #11171d;
 }
 
 @layer base {
   html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-  body { @apply bg-slate-50 text-slate-900; font-feature-settings: "cv11", "ss01"; }
+  body { @apply bg-steel-50 text-steel-950; }
   h1, h2, h3 { @apply font-display; }
-  h1 { @apply tracking-tight; }            /* tight tracking only suits large titles */
-  h2, h3 { letter-spacing: -0.005em; }
-  :focus-visible { @apply outline-2 outline-offset-2 outline-indigo-500; }
+  h1 { letter-spacing: -0.035em; }          /* large light titles want tight tracking */
+  h2, h3 { letter-spacing: -0.012em; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
 }
 
-/* Soft brand glow used behind hero sections. */
-.hero-glow {
+/* Dark steel hero panel: a soft top-left light on a deep blue-grey. */
+.panel-steel {
   background:
-    radial-gradient(60rem 30rem at 15% -10%, rgb(99 102 241 / 0.16), transparent 60%),
-    radial-gradient(40rem 24rem at 90% 0%, rgb(14 165 233 / 0.12), transparent 60%);
+    radial-gradient(42rem 28rem at 30% 15%, rgb(255 255 255 / 0.16), transparent 60%),
+    radial-gradient(30rem 22rem at 85% 90%, rgb(58 107 255 / 0.22), transparent 65%),
+    linear-gradient(160deg, #6f8496 0%, #4b5d6e 45%, #26323d 100%);
 }
+
+/* Light "map" panel: a faint street grid. */
+.panel-map {
+  background-color: #e9eef1;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.9) 2px, transparent 2px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.9) 2px, transparent 2px),
+    linear-gradient(rgb(124 144 162 / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(124 144 162 / 0.12) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+}
+
+/* Muted second line of a headline, as in editorial layouts. */
+.text-muted-outline { color: rgb(255 255 255 / 0.45); }
 
 /* Scrollable rows (the phone nav) without a visible scrollbar. */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
-/* Range sliders in brand colour with a larger thumb. */
-input[type="range"] { accent-color: var(--color-indigo-600); height: 1.25rem; }
+/* Range sliders in brand colour. */
+input[type="range"] { accent-color: var(--color-brand-600); height: 1.25rem; }
+
+/* Gentle float for hero objects; off for people who prefer less motion. */
+@keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+.animate-float { animation: float 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .animate-float { animation: none; } }

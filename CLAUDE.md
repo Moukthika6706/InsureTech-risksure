@@ -35,7 +35,7 @@ The user is new to insurance. Explain insurance terms in plain language and keep
 - If time is short, cut the dashboard and any config editor first. Never cut the wizard, waterfall, what-if simulator, underwriter queue or rule assistant.
 
 ## UI
-Modern fintech look (user's choice): Inter body + Plus Jakarta Sans headings (Google Fonts), indigo brand. Shared pieces in `frontend/src/components/ui.jsx` (Card, Panel, PageHeader, Stat, Button sizes, Badge, EmptyState, BackLink) and `components/icons.jsx` (inline SVG). Landing page = `pages/ProductPicker.jsx` (hero with a live `POST /rate` example, live stats, product cards, how it works, under the hood). Check phone widths down to 358px.
+Editorial style (user's choice, inspired by a Behance 'Clean Laundry' concept): tagline "Intelligence Behind Every Insured Decision." Inter body + Inter Tight light display type; `steel` neutrals and an electric-blue `brand` scale defined in `src/index.css` (`indigo`/`slate` classes were renamed to `brand`/`steel`). Shared pieces in `components/ui.jsx` (pill Buttons, Card, Panel, PageHeader, Eyebrow, Stat, EmptyState, BackLink), inline SVG icons in `components/icons.jsx`. Landing = `pages/ProductPicker.jsx`: dark steel hero panel with SVG glass shield + a 'route of a quote' map panel with a live `POST /rate` card. Check phone widths down to 358px.
 
 ## Roadmap
 1. Setup, SPEC.md, CLAUDE.md ✅

@@ -34,13 +34,13 @@ function Slider({ field, start, value, onChange }) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
-        <label htmlFor={id} className="text-sm font-medium text-slate-800">{field.label}</label>
-        <span className={`text-sm tabular-nums ${changed ? 'font-semibold text-indigo-700' : 'text-slate-600'}`}>
+        <label htmlFor={id} className="text-sm font-medium text-steel-800">{field.label}</label>
+        <span className={`text-sm tabular-nums ${changed ? 'font-semibold text-brand-700' : 'text-steel-600'}`}>
           {isMoneyField(field) ? inrWords(value) : Number(value).toLocaleString('en-IN')}
         </span>
       </div>
       <input id={id} type="range" min={lo} max={hi} step={step} value={value}
-        onChange={(e) => onChange(Number(e.target.value))} className="mt-1 w-full accent-indigo-600" />
+        onChange={(e) => onChange(Number(e.target.value))} className="mt-1 w-full accent-brand-600" />
     </div>
   )
 }
@@ -84,25 +84,25 @@ export default function WhatIf({ product, applicant, coverages, basePremium, onR
   return (
     <div>
       {/* Summary of the simulated quote */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-steel-50 p-4">
         {result ? (
           <div>
-            <p className="text-sm text-slate-600">What-if premium {loading && <span className="text-slate-400">(updating…)</span>}</p>
-            <p className="text-2xl font-bold tabular-nums">
+            <p className="text-sm text-steel-600">What-if premium {loading && <span className="text-steel-400">(updating…)</span>}</p>
+            <p className="font-display text-3xl font-light tabular-nums">
               {inr(result.premium)}{' '}
-              <span className={`text-base font-semibold ${diff > 0 ? 'text-rose-700' : diff < 0 ? 'text-blue-700' : 'text-slate-500'}`}>
+              <span className={`text-base font-semibold ${diff > 0 ? 'text-rose-700' : diff < 0 ? 'text-blue-700' : 'text-steel-500'}`}>
                 {diff > 0 ? '▲' : diff < 0 ? '▼' : ''} {diff === 0 ? 'no change' : `${inr(Math.abs(diff))} (${diff > 0 ? '+' : '−'}${Math.abs((diff / basePremium) * 100).toFixed(1)}%)`}
               </span>
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
               <Badge tone={d.tone}>{d.label}</Badge>
-              <span className="text-slate-600">
+              <span className="text-steel-600">
                 Risk {result.risk.method === 'ml_model' ? `${(result.risk.risk_score * 100).toFixed(1)}%` : `${result.risk.risk_score} pts`} ({result.risk.risk_band.replace('_', ' ')})
               </span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-steel-600">
             {loading ? 'Re-pricing…' : 'Move a slider or change an answer to see how the price and decision would change. Nothing is saved.'}
           </p>
         )}
@@ -116,7 +116,7 @@ export default function WhatIf({ product, applicant, coverages, basePremium, onR
       <div className="mt-5 space-y-6">
         {groups.map((g) => (
           <section key={g}>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{g}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-steel-500">{g}</h3>
             <div className="mt-3 grid gap-x-6 gap-y-4 sm:grid-cols-2">
               {product.fields.filter((f) => (f.group || 'Details') === g).map((f) =>
                 f.type === 'int' || f.type === 'float'

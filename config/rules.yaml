@@ -1,0 +1,111 @@
+# Underwriting rules. Evaluated by backend/engine/rules.py (plain code, no AI).
+#
+# when:     {all: [...]} or {any: [...]} of {field, op, value}; groups can nest.
+#           ops: eq ne lt lte gt gte in not_in. Fields: any product field,
+#           plus risk_score and risk_band (low < medium < high < very_high).
+# action:   decline | refer (to the underwriter queue) | load (premium +load_pct%)
+# product:  a product code, or "*" for every product.
+# Decision precedence: decline > refer > approve_adjusted (any load) > auto_approve.
+#
+# Starter rules target what the sample book shows after rating (Step 4b/4c):
+# loads are sized so the targeted segment's loss ratio lands near 65%.
+kind: rules
+rules:
+  # ---------------------------------------------------------------- auto
+  - id: auto_many_claims_decline
+    product: auto
+    description: Decline drivers with 3 or more claims in 3 years
+    when: {all: [{field: prior_claims_3y, op: gte, value: 3}]}
+    action: decline
+    reason: Claims history is outside our risk appetite.
+
+  - id: auto_young_sports_refer
+    product: auto
+    description: Refer drivers under 21 with a sports car
+    when:
+      all:
+        - {field: driver_age, op: lt, value: 21}
+        - {field: vehicle_type, op: eq, value: sports}
+    action: refer
+    reason: Young driver with a high-performance vehicle needs manual review.
+
+  - id: auto_very_high_risk_refer
+    product: auto
+    description: Refer very high predicted claim risk
+    when: {all: [{field: risk_band, op: eq, value: very_high}]}
+    action: refer
+    reason: The claim model predicts over 40% chance of a claim next year.
+
+  - id: auto_high_risk_load
+    product: auto
+    description: Load high predicted claim risk by 50%
+    when: {all: [{field: risk_band, op: eq, value: high}]}
+    action: load
+    load_pct: 50
+    reason: The claim model predicts a 15-40% chance of a claim; sample loss ratio for this band is ~105%.
+
+  # ---------------------------------------------------------------- home
+  - id: home_many_claims_decline
+    product: home
+    description: Decline homes with 3 or more claims in 5 years
+    when: {all: [{field: prior_claims_5y, op: gte, value: 3}]}
+    action: decline
+    reason: Claims history is outside our risk appetite.
+
+  - id: home_old_flood_refer
+    product: home
+    description: Refer old buildings in high flood zones
+    when:
+      all:
+        - {field: flood_zone, op: eq, value: 3}
+        - {field: building_age_years, op: gt, value: 40}
+    action: refer
+    reason: Old structure in a high flood-risk zone needs a survey.
+
+  - id: home_very_high_risk_refer
+    product: home
+    description: Refer very high scorecard risk
+    when: {all: [{field: risk_band, op: eq, value: very_high}]}
+    action: refer
+    reason: Scorecard puts this home in the very high risk band.
+
+  - id: home_high_risk_load
+    product: home
+    description: Load high scorecard risk by 15%
+    when: {all: [{field: risk_band, op: eq, value: high}]}
+    action: load
+    load_pct: 15
+    reason: High scorecard band; sample loss ratio for this band is ~76%.
+
+  # ------------------------------------------------------------ business
+  - id: business_many_claims_decline
+    product: business
+    description: Decline businesses with 3 or more claims in 5 years
+    when: {all: [{field: prior_claims_5y, op: gte, value: 3}]}
+    action: decline
+    reason: Claims history is outside our risk appetite.
+
+  - id: business_fire_hazard_refer
+    product: business
+    description: Refer restaurants and factories without a fire safety certificate
+    when:
+      all:
+        - {field: business_type, op: in, value: [restaurant, manufacturing_unit]}
+        - {field: fire_safety_certificate, op: eq, value: false}
+    action: refer
+    reason: High fire-hazard trade without a fire NOC needs a risk survey.
+
+  - id: business_very_high_risk_refer
+    product: business
+    description: Refer very high scorecard risk
+    when: {all: [{field: risk_band, op: eq, value: very_high}]}
+    action: refer
+    reason: Scorecard puts this business in the very high risk band.
+
+  - id: business_high_risk_load
+    product: business
+    description: Load high scorecard risk by 25%
+    when: {all: [{field: risk_band, op: eq, value: high}]}
+    action: load
+    load_pct: 25
+    reason: High scorecard band; sample loss ratio for this band is ~82%.

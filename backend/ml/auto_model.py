@@ -11,39 +11,49 @@ import numpy as np
 import pandas as pd
 import shap
 
-MODEL_PATH = Path(__file__).resolve().parents[2] / "models" / "auto_risk.joblib"
+MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
+MODEL_PATH = MODELS_DIR / "auto_risk.joblib"
+DEFAULT_MODEL = MODEL_PATH.name
 
 
-@lru_cache(maxsize=1)
-def _load():
-    bundle = joblib.load(MODEL_PATH)
+@lru_cache(maxsize=None)
+def _load(model_file: str = DEFAULT_MODEL):
+    bundle = joblib.load(MODELS_DIR / model_file)
     pipe = bundle["pipeline"]
     explainer = shap.TreeExplainer(pipe.named_steps["gbm"])
     return bundle, pipe, explainer
 
 
-def model_info() -> dict:
+def _frame(rows: list[dict], features: list[str]) -> pd.DataFrame:
+    missing = [f for f in features if f not in rows[0]]
+    if missing:
+        raise ValueError(f"Missing auto fields: {missing}")
+    X = pd.DataFrame([{f: r[f] for f in features} for r in rows])
+    X["anti_theft_device"] = X["anti_theft_device"].astype(int)
+    return X
+
+
+def model_info(model_file: str = DEFAULT_MODEL) -> dict:
     """Metrics and global importance saved at training time (for the UI/README)."""
-    bundle, _, _ = _load()
+    bundle, _, _ = _load(model_file)
     return {"metrics": bundle["metrics"], "global_importance": bundle["global_importance"]}
 
 
-def score(applicant: dict, top_n: int = 5) -> dict:
+def score_many(rows: list[dict], model_file: str = DEFAULT_MODEL) -> list[float]:
+    """Claim probabilities for many applicants at once (no SHAP; used by the rule preview)."""
+    bundle, pipe, _ = _load(model_file)
+    return [round(float(p), 4) for p in pipe.predict_proba(_frame(rows, bundle["features"]))[:, 1]]
+
+
+def score(applicant: dict, top_n: int = 5, model_file: str = DEFAULT_MODEL) -> dict:
     """Return {risk_score, baseline_risk, top_factors} for one applicant.
 
     SHAP splits the prediction into per-feature contributions (in log-odds):
     positive = pushes claim risk up, negative = pushes it down. Added to the
     baseline (the average applicant), they give exactly the model's output.
     """
-    bundle, pipe, explainer = _load()
-    features = bundle["features"]
-
-    missing = [f for f in features if f not in applicant]
-    if missing:
-        raise ValueError(f"Missing auto fields: {missing}")
-
-    X = pd.DataFrame([{f: applicant[f] for f in features}])
-    X["anti_theft_device"] = X["anti_theft_device"].astype(int)
+    bundle, pipe, explainer = _load(model_file)
+    X = _frame([applicant], bundle["features"])
 
     prob = float(pipe.predict_proba(X)[0, 1])
     contrib = explainer.shap_values(pipe.named_steps["pre"].transform(X))[0]

@@ -41,7 +41,7 @@ The user is new to insurance. Explain insurance terms in plain language and keep
 4. Product YAMLs + generic rating engine + tests
 4b. Rate calibration (`python -m engine.calibrate`, settings in `config/calibration.yaml`): one multiplier per product on coverage rates to hit a 0.65 loss ratio on the sample; factors untouched. Segment loss ratios show the factors don't separate risk enough (young drivers and high/very_high bands run well above target).
 4c. Relativity fitting (`python -m engine.fit_relativities [--write --product X]`, settings under `fitting:` in `config/calibration.yaml`): Tweedie GLM per product on the YAML levels, with credibility blending, monotonic ordering and caps. Applied to **home and business only** (user-approved). **Auto deliberately kept as-is**: the x4 data boost makes under-25s cost 20-28x per rupee, so a fit collapses base rates and puts 2/3 of policies on the minimum premium. Young-driver risk is to be handled by Step 5 underwriting rules (load/refer, ML score). The ML score is NOT a price multiplier anywhere.
-5. Rules engine + impact preview + tests
+5. Rules engine + impact preview + tests ✅ — `engine/scorecard.py`, `engine/risk.py`, `engine/rules.py`, `engine/quote.py` (`run_quote`), `engine/preview.py` (`preview_rule`, `book_summary`; `python -m engine.preview`). 12 starter rules in `config/rules.yaml` sized from sample loss ratios. The ML score affects price only through rules (refer very_high, load high +50%).
 6. DB models + API (quotes, bind, issue, queue, audit)
 7. Rule assistant (draft/publish, validation, fallback)
 8. Frontend: (a) picker + wizard, (b) waterfall + what-if, (c) queue, audit, rules, dashboard

@@ -8,6 +8,8 @@ currency: INR
 risk:
   method: scorecard
   scorecard: business
+  # scorecards.yaml factor names that differ from this product's field names.
+  field_map: {prior_claims: prior_claims_5y}
 min_premium: 2500
 
 fields:

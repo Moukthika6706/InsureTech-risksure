@@ -52,7 +52,7 @@ React (Vite, Tailwind, Recharts)  ──REST/JSON──►  FastAPI
     load_pct: 0                    # used when action = load
     reason: Young driver with high-performance vehicle
   ```
-  Operators: `eq, ne, lt, lte, gt, gte, in, not_in`. Fields can be any applicant field plus `risk_score` and `risk_band`.
+  Operators: `eq, ne, lt, lte, gt, gte, in, not_in`. Fields can be any applicant field plus `risk_score` and `risk_band`. Bands are ordered low < medium < high < very_high, so `risk_band gte high` works. Groups can nest (`any` inside `all`). Optional `enabled: false` switches a rule off. `load_pct` must be in [−50, 300] and non-zero for `load`; a negative value is a credit. Every rule is validated by `engine/rules.py`: a strict Pydantic schema (unknown keys rejected), then checks against the product config (the field exists, the operator suits its type, the value is a valid option). The same validation gates the AI rule assistant.
 
 **Stored in the database (SQLite)**
 - **Applicant**: `id`, `product`, `data` (JSON of the form fields), `source` (`sample` or `manual`), `created_at`.
@@ -93,8 +93,23 @@ The score affects price only through underwriting rules, e.g. "risk_score > 0.35
 | `refer` | Any `refer` rule hit, so the case goes to the underwriter queue. |
 | `decline` | Any `decline` rule hit. |
 
-Precedence: decline > refer > approve_adjusted > auto_approve. Every rule hit is listed with its human-readable `reason`.
-**Impact preview**: run a proposed rule over the sample applicants and report the number affected, the number whose decision changes, and the total and average premium change.
+Precedence: decline > refer > approve_adjusted > auto_approve. Every rule hit is listed with its human-readable `reason`. Loads are added together, applied to the rated premium, and appear as `underwriting` steps in the waterfall.
+
+**Risk score inputs to rules**: `engine/risk.py` dispatches on each product's `risk.method`:
+- `ml_model` (auto) gives a claim probability, banded by `risk.bands` in auto.yaml.
+- `scorecard` (home, business) gives 0–100 points from `scorecards.yaml`, read generically. `risk.field_map` maps scorecard factor names to field names, so `scorecards.yaml` itself is never edited.
+
+Both return `{risk_score, risk_band, factors}`. `engine/quote.py::run_quote` chains rating → risk → rules.
+
+**Impact preview** (`engine/preview.py::preview_rule`): validates a proposed rule, then runs the sample book with and without it. The book is priced and scored once and cached. The preview reports:
+- the number of applicants matched
+- the decision mix before and after, and the number of decisions that changed
+- written premium before and after (declines removed; referrals counted as written)
+- the average premium change for matched applicants
+- the loss ratio before and after
+- up to 10 example applicants
+
+A rule with an existing id is previewed as a replacement.
 
 ## Quote lifecycle
 ```

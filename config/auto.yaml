@@ -8,6 +8,9 @@ currency: INR
 risk:
   method: ml_model          # gradient boosting claim-likelihood model
   model: auto_risk.joblib
+  # Claim-probability bands (upper bounds; above the last = very_high), same
+  # convention as the scorecard bands so rules can use risk_band for every product.
+  bands: {low: 0.05, medium: 0.15, high: 0.40}
 min_premium: 2500
 
 fields:

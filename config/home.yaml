@@ -8,6 +8,9 @@ currency: INR
 risk:
   method: scorecard         # transparent points scorecard in config/scorecards.yaml
   scorecard: home
+  # scorecards.yaml factor names that differ from this product's field names.
+  field_map: {prior_claims: prior_claims_5y, security.alarm: has_alarm,
+              security.cctv: has_cctv, security.gated_community: gated_community}
 min_premium: 1000
 
 fields:

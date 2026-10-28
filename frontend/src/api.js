@@ -29,6 +29,7 @@ export const api = {
   createQuote: (product, applicant, coverages) =>
     request('POST', '/quotes', { product, applicant, coverages }),
   quote: (id) => request('GET', `/quotes/${id}`),
+  rate: (product, applicant, coverages) => request('POST', '/rate', { product, applicant, coverages }),
   bind: (id) => request('POST', `/quotes/${id}/bind`, { actor: 'customer' }),
   issue: (id) => request('POST', `/quotes/${id}/issue`, { actor: 'customer' }),
 }

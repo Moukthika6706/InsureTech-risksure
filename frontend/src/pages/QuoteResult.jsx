@@ -2,16 +2,24 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { navigate } from '../router'
 import { Badge, Button, Card, ErrorBox, Spinner } from '../components/ui'
-import { DECISIONS, STATUS_TONE, inr, readable, sentenceCase, titleCase } from '../format'
+import RiskFactors from '../components/RiskFactors'
+import Waterfall from '../components/Waterfall'
+import WhatIf from '../components/WhatIf'
+import { DECISIONS, STATUS_TONE, inr, sentenceCase, titleCase } from '../format'
 
 // Quote result: decision, premium, how it was built, why, and the next lifecycle step.
 export default function QuoteResult({ quoteId }) {
   const [quote, setQuote] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [product, setProduct] = useState(null)     // config, for the what-if controls
+  const [whatIf, setWhatIf] = useState(null)       // POST /rate result while simulating
 
   useEffect(() => {
-    api.quote(quoteId).then(setQuote).catch(setError)
+    api.quote(quoteId).then((q) => {
+      setQuote(q)
+      return api.product(q.product).then(setProduct)
+    }).catch(setError)
   }, [quoteId])
 
   const act = async (fn) => {
@@ -29,7 +37,12 @@ export default function QuoteResult({ quoteId }) {
   if (!quote) return <Spinner label="Loading quote…" />
 
   const d = DECISIONS[quote.decision] || DECISIONS.auto_approve
-  const risk = quote.risk || {}
+  // What the panels below show: the saved quote, or the what-if simulation.
+  const view = whatIf
+    ? { steps: whatIf.steps, premium: whatIf.premium, risk: whatIf.risk, hits: whatIf.rule_hits }
+    : { steps: quote.breakdown, premium: quote.premium, risk: quote.risk || {}, hits: quote.rule_hits }
+  const risk = view.risk
+  const tag = whatIf && <Badge tone="indigo">What-if</Badge>
 
   return (
     <div className="space-y-5">
@@ -67,62 +80,35 @@ export default function QuoteResult({ quoteId }) {
       </Card>
 
       <div className="grid gap-5 lg:grid-cols-5">
-        {/* How the price was built (8b turns this into a waterfall chart) */}
+        {/* How the price was built */}
         <Card className="p-6 lg:col-span-3">
-          <h2 className="font-semibold">How your premium was calculated</h2>
-          <table className="mt-3 w-full text-sm">
-            <tbody>
-              {quote.breakdown.map((s) => (
-                <tr key={s.step} className="border-b border-slate-100 align-top">
-                  <td className="py-2 pr-2">
-                    <span className="font-medium">{s.label}</span>
-                    <span className="block text-xs text-slate-500">{s.detail}</span>
-                  </td>
-                  <td className="py-2 text-right text-slate-500">{s.multiplier != null ? `×${s.multiplier}` : ''}</td>
-                  <td className={`py-2 pl-3 text-right tabular-nums ${s.amount_change < 0 ? 'text-emerald-700' : ''}`}>
-                    {s.amount_change === 0 ? '—' : `${s.amount_change > 0 ? '+' : '−'}${inr(Math.abs(s.amount_change))}`}
-                  </td>
-                </tr>
-              ))}
-              <tr>
-                <td className="pt-3 font-semibold">Premium</td>
-                <td />
-                <td className="pt-3 text-right font-semibold tabular-nums">{inr(quote.premium)}</td>
-              </tr>
-            </tbody>
-          </table>
+          <h2 className="flex items-center gap-2 font-semibold">How the premium is calculated {tag}</h2>
+          <div className="mt-3">
+            <Waterfall steps={view.steps} premium={view.premium} highlight={!!whatIf} />
+          </div>
         </Card>
 
         <div className="space-y-5 lg:col-span-2">
           {/* Risk score and its top drivers */}
           <Card className="p-6">
-            <h2 className="font-semibold">Risk assessment</h2>
+            <h2 className="flex items-center gap-2 font-semibold">Risk assessment {tag}</h2>
             <p className="mt-1 text-sm text-slate-600">
               {risk.method === 'ml_model'
                 ? <>Predicted claim chance <b>{(risk.risk_score * 100).toFixed(1)}%</b> (average driver {(risk.baseline * 100).toFixed(1)}%)</>
                 : <>Scorecard <b>{risk.risk_score}</b> points out of 100</>}
             </p>
             <div className="mt-2"><Badge tone={{ low: 'green', medium: 'amber', high: 'red', very_high: 'red' }[risk.risk_band]}>{sentenceCase(risk.risk_band)} risk</Badge></div>
-            <ul className="mt-4 space-y-2 text-sm">
-              {(risk.factors || []).map((f) => (
-                <li key={f.field} className="flex justify-between gap-3">
-                  <span>{f.label} <span className="text-slate-400">({readable(f.field, f.value)})</span></span>
-                  <span className={f.impact > 0 ? 'text-rose-600' : 'text-emerald-600'}>
-                    {f.impact > 0 ? '▲ raises' : '▼ lowers'} risk
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4"><RiskFactors factors={risk.factors} unit={risk.unit} /></div>
           </Card>
 
           {/* Underwriting rules that fired */}
           <Card className="p-6">
-            <h2 className="font-semibold">Underwriting rules</h2>
-            {quote.rule_hits.length === 0
+            <h2 className="flex items-center gap-2 font-semibold">Underwriting rules {tag}</h2>
+            {view.hits.length === 0
               ? <p className="mt-2 text-sm text-slate-600">No rules applied. This quote was approved automatically.</p>
               : (
                 <ul className="mt-3 space-y-3 text-sm">
-                  {quote.rule_hits.map((h) => (
+                  {view.hits.map((h) => (
                     <li key={h.id}>
                       <div className="flex items-center gap-2">
                         <Badge tone={{ decline: 'red', refer: 'blue', load: 'amber' }[h.action]}>
@@ -138,6 +124,17 @@ export default function QuoteResult({ quoteId }) {
           </Card>
         </div>
       </div>
+
+      {product && (
+        <Card className="p-6">
+          <h2 className="font-semibold">What-if simulator</h2>
+          <p className="mt-1 text-sm text-slate-600">See how each answer changes the price, the risk score and the decision.</p>
+          <div className="mt-4">
+            <WhatIf product={product} applicant={quote.applicant} coverages={quote.coverages.map((c) => c.code)}
+              basePremium={quote.premium} onResult={setWhatIf} />
+          </div>
+        </Card>
+      )}
     </div>
   )
 }

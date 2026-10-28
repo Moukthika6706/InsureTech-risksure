@@ -55,7 +55,9 @@ def _detail(q: Quote) -> QuoteDetail:
 @router.get("/products", tags=["products"])
 def list_products():
     return [{"code": p.code, "name": p.name, "description": p.description, "version": p.version,
-             "risk_method": p.risk["method"]} for p in load_products().values()]
+             "risk_method": p.risk["method"], "currency": p.currency, "min_premium": p.min_premium,
+             "coverages": [{"code": c.code, "name": c.name, "mandatory": c.mandatory} for c in p.coverages],
+             "questions": len(p.fields)} for p in load_products().values()]
 
 
 @router.get("/products/{code}", tags=["products"])
@@ -86,7 +88,7 @@ def create_quote(req: QuoteRequest, db: Session = Depends(get_db)):
 def list_quotes(status: Optional[Status] = None, product: Optional[str] = None,
                 limit: int = Query(50, ge=1, le=500), offset: int = Query(0, ge=0),
                 db: Session = Depends(get_db)):
-    stmt = select(Quote).order_by(Quote.id.desc()).limit(limit).offset(offset)
+    stmt = select(Quote).order_by(Quote.created_at.desc(), Quote.id.desc()).limit(limit).offset(offset)
     if status:
         stmt = stmt.where(Quote.status == status)
     if product:
@@ -142,7 +144,7 @@ def underwrite_quote(quote_id: int, req: UnderwriteRequest, db: Session = Depend
 def recent_audit(limit: int = Query(100, ge=1, le=1000), product: Optional[str] = None,
                  db: Session = Depends(get_db)):
     """Most recent lifecycle events across all quotes (the dashboard's activity feed)."""
-    stmt = select(AuditEvent).join(Quote).order_by(AuditEvent.id.desc()).limit(limit)
+    stmt = select(AuditEvent).join(Quote).order_by(AuditEvent.created_at.desc(), AuditEvent.id.desc()).limit(limit)
     if product:
         stmt = stmt.where(Quote.product == product)
     return [AuditEventOut.model_validate(e).model_copy(update={"quote_number": e.quote.quote_number,

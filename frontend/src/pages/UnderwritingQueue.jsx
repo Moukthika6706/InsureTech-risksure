@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import ProductFilter from '../components/ProductFilter'
 import UnderwriteForm from '../components/UnderwriteForm'
-import { Badge, Card, ErrorBox, Spinner } from '../components/ui'
+import { Badge, Card, EmptyState, ErrorBox, PageHeader, Spinner } from '../components/ui'
 import { inr, sentenceCase, titleCase, when } from '../format'
 
 const BAND_TONE = { low: 'green', medium: 'amber', high: 'red', very_high: 'red' }
@@ -29,11 +29,10 @@ export default function UnderwritingQueue({ onChange }) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Underwriting queue</h1>
-      <p className="mt-1 text-slate-600">
-        Quotes the rules referred for a human decision. Approve (optionally at a different premium) or decline, with a reason for the audit trail.
-      </p>
-      <div className="mt-5"><ProductFilter value={product} onChange={setProduct} /></div>
+      <PageHeader eyebrow="Underwriter workspace" title="Underwriting queue"
+        description="Quotes the rules referred for a human decision. Approve (optionally at a different premium) or decline, with a reason for the audit trail."
+        actions={items && <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700">{items.length} waiting</span>} />
+      <ProductFilter value={product} onChange={setProduct} />
 
       {done.length > 0 && (
         <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800" role="status">
@@ -50,13 +49,13 @@ export default function UnderwritingQueue({ onChange }) {
         {error ? <ErrorBox error={error} />
           : !items ? <Spinner label="Loading queue…" />
           : items.length === 0 ? (
-            <Card className="p-8 text-center text-slate-600">Nothing waiting. Every quote has been decided.</Card>
+            <EmptyState title="Inbox zero">Nothing is waiting. Every quote has been decided.</EmptyState>
           ) : items.map((q) => (
-            <Card key={q.id} className="p-5">
+            <Card key={q.id} className="p-6 transition hover:border-slate-300">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <a href={`#/quotes/${q.id}`} className="font-semibold text-indigo-700 hover:underline">{q.quote_number}</a>
+                    <a href={`#/quotes/${q.id}`} className="font-mono text-[15px] font-semibold text-indigo-700 hover:underline">{q.quote_number}</a>
                     <span className="text-sm text-slate-500">{titleCase(q.product)} · referred {when(q.updated_at)}</span>
                   </div>
                   <ul className="mt-2 space-y-1 text-sm text-slate-700">
@@ -64,7 +63,7 @@ export default function UnderwritingQueue({ onChange }) {
                   </ul>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-bold tabular-nums">{inr(q.premium)}</p>
+                  <p className="font-display text-2xl font-bold tabular-nums text-slate-900">{inr(q.premium)}</p>
                   <Badge tone={BAND_TONE[q.risk_band]}>{sentenceCase(q.risk_band)} risk</Badge>
                 </div>
               </div>

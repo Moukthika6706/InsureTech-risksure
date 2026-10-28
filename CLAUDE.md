@@ -34,6 +34,9 @@ The user is new to insurance. Explain insurance terms in plain language and keep
 - Never commit secrets (`.env` is gitignored).
 - If time is short, cut the dashboard and any config editor first. Never cut the wizard, waterfall, what-if simulator, underwriter queue or rule assistant.
 
+## UI
+Modern fintech look (user's choice): Inter body + Plus Jakarta Sans headings (Google Fonts), indigo brand. Shared pieces in `frontend/src/components/ui.jsx` (Card, Panel, PageHeader, Stat, Button sizes, Badge, EmptyState, BackLink) and `components/icons.jsx` (inline SVG). Landing page = `pages/ProductPicker.jsx` (hero with a live `POST /rate` example, live stats, product cards, how it works, under the hood). Check phone widths down to 358px.
+
 ## Roadmap
 1. Setup, SPEC.md, CLAUDE.md ✅
 2. Hello-world backend + frontend deployed early

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
+import Icon from '../components/icons'
 import RulePreview from '../components/RulePreview'
-import { Badge, Button, Card, ErrorBox, Spinner } from '../components/ui'
+import { Badge, Button, Card, ErrorBox, PageHeader, Spinner } from '../components/ui'
 import { titleCase, when } from '../format'
 import { ruleSentence } from '../rules'
 
@@ -99,20 +100,26 @@ export default function RulesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Underwriting rules</h1>
-        <p className="mt-1 text-slate-600">
-          Describe a rule in plain English. The assistant drafts it in RiskSure's rule format, our engine validates it, and you see its impact on the sample book before you publish.
-        </p>
-      </div>
+      <PageHeader eyebrow="Underwriter workspace" title="Underwriting rules"
+        description="Describe a rule in plain English. The assistant drafts it in RiskSure's rule format, the engine validates it, and you see its impact on the sample book before you publish." />
 
       <Card className="p-6">
-        <h2 className="font-semibold">Rule assistant</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 font-semibold"><Icon name="sparkles" className="h-5 w-5 text-indigo-600" />Rule assistant</h2>
+          <ol className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500" aria-label="How publishing works">
+            {['Describe in English', 'Engine validates + previews', 'You approve and publish'].map((s, i) => (
+              <li key={s} className="flex items-center gap-2">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-slate-900 text-[11px] font-bold text-white">{i + 1}</span>{s}
+                {i < 2 && <span className="text-slate-300">→</span>}
+              </li>
+            ))}
+          </ol>
+        </div>
         <form onSubmit={onDraft} className="mt-3 space-y-3">
           <label htmlFor="rule-text" className="sr-only">Rule in plain English</label>
           <textarea id="rule-text" rows={2} value={text} onChange={(e) => setText(e.target.value)} required minLength={5} maxLength={500}
             placeholder="e.g. Refer anyone under 21 who drives a sports car"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-[15px] shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100" />
           <div className="flex flex-wrap items-center gap-3">
             <label htmlFor="rule-product" className="text-sm text-slate-600">Product</label>
             <select id="rule-product" value={product} onChange={(e) => setProduct(e.target.value)}
@@ -149,7 +156,6 @@ export default function RulesPage() {
               : <Badge tone="amber">AI unavailable: pre-written example</Badge>}
             {draft.attempts > 1 && <Badge>repaired after validation</Badge>}
           </div>
-          {draft.fallback_reason && <p className="mt-2 text-sm text-amber-800">Reason: {draft.fallback_reason}.</p>}
           {draft.notes && <p className="mt-2 text-sm text-slate-600">{draft.notes}</p>}
           {!draft.feasible && (
             <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm">The assistant could not express this with RiskSure's data, so no rule was drafted.</p>

@@ -64,10 +64,10 @@ export default function Waterfall({ steps, premium, highlight }) {
       {view === 'chart' ? (
         <div className={`mt-3 rounded-lg p-2 ${highlight ? 'ring-2 ring-indigo-200' : ''}`}>
           <ResponsiveContainer width="100%" height={rows.length * 30 + 36}>
-            <BarChart data={rows} layout="vertical" margin={{ top: 4, right: narrow ? 56 : 64, bottom: 4, left: 0 }} barCategoryGap={2}>
+            <BarChart data={rows} layout="vertical" margin={{ top: 4, right: narrow ? 48 : 64, bottom: 4, left: 0 }} barCategoryGap={2}>
               <XAxis type="number" tickFormatter={compact} tick={{ fontSize: 11, fill: '#64748b' }}
                 axisLine={false} tickLine={false} domain={[0, 'auto']} tickCount={5} />
-              <YAxis type="category" dataKey="label" width={narrow ? 96 : 150} interval={0}
+              <YAxis type="category" dataKey="label" width={narrow ? 88 : 150} interval={0}
                 tick={{ fontSize: narrow ? 11 : 12, fill: '#334155' }} axisLine={false} tickLine={false} />
               <Tooltip content={<StepTooltip />} cursor={{ fill: '#f1f5f9' }} isAnimationActive={false} />
               <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />

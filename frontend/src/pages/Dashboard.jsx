@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import ProductFilter from '../components/ProductFilter'
-import { Badge, Card, ErrorBox, Spinner } from '../components/ui'
+import Icon from '../components/icons'
+import { Badge, Card, EmptyState, ErrorBox, PageHeader, Spinner, Stat } from '../components/ui'
 import { DECISIONS, STATUS_TONE, inr, inrWords, sentenceCase, titleCase, when } from '../format'
 
 // Decisions are states, so they use the reserved status palette (always with a label).
@@ -25,15 +26,14 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Portfolio dashboard</h1>
-      <p className="mt-1 text-slate-600">What has been quoted, sold and referred, across the book.</p>
-      <div className="mt-5"><ProductFilter value={product} onChange={setProduct} /></div>
+      <PageHeader eyebrow="Portfolio" title="Dashboard" description="What has been quoted, sold and referred, across the book." />
+      <ProductFilter value={product} onChange={setProduct} />
 
-      <div className="mt-5">
+      <div className="mt-6">
         {error ? <ErrorBox error={error} />
           : !data ? <Spinner label="Loading portfolio…" />
           : data.summary.quotes === 0 ? (
-            <Card className="p-8 text-center text-slate-600">No quotes yet. <a href="#/" className="text-indigo-600 underline">Create one</a> to see the portfolio fill in.</Card>
+            <EmptyState title="No quotes yet"><a href="#/" className="font-medium text-indigo-600 underline">Create one</a> to see the portfolio fill in.</EmptyState>
           ) : <Body {...data} />}
       </div>
     </div>
@@ -45,13 +45,13 @@ function Body({ summary: s, quotes, activity }) {
   const bands = Object.keys(BAND_COLOR).map((b) => [b, s.by_risk_band[b] || 0])
   return (
     <div className="space-y-5">
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-        <Tile label="Quotes" value={s.quotes.toLocaleString('en-IN')} />
-        <Tile label="Policies issued" value={s.policies.toLocaleString('en-IN')} />
-        <Tile label="Written premium" value={inrWords(s.written_premium)} sub="issued policies" />
-        <Tile label="Average premium" value={inr(s.average_premium)} />
-        <Tile label="Straight-through" value={pct(s.straight_through_rate)} sub="decided with no human" />
-        <Tile label="In underwriting queue" value={s.in_queue.toLocaleString('en-IN')} sub={`referral rate ${pct(s.referral_rate)}`} href="#/underwriting" />
+      <dl className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <Stat icon={<Icon name="doc" className="h-4 w-4" />} label="Quotes" value={s.quotes.toLocaleString('en-IN')} />
+        <Stat icon={<Icon name="shield" className="h-4 w-4" />} label="Policies issued" value={s.policies.toLocaleString('en-IN')} />
+        <Stat icon={<Icon name="chart" className="h-4 w-4" />} label="Written premium" value={inrWords(s.written_premium)} sub="issued policies" />
+        <Stat icon={<Icon name="scale" className="h-4 w-4" />} label="Average premium" value={inr(s.average_premium)} />
+        <Stat icon={<Icon name="sparkles" className="h-4 w-4" />} label="Straight-through" value={pct(s.straight_through_rate)} sub="decided with no human" />
+        <Stat icon={<Icon name="inbox" className="h-4 w-4" />} label="In queue" value={s.in_queue.toLocaleString('en-IN')} sub={`referral rate ${pct(s.referral_rate)}`} href="#/underwriting" />
       </dl>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -118,17 +118,6 @@ function Body({ summary: s, quotes, activity }) {
       </div>
     </div>
   )
-}
-
-function Tile({ label, value, sub, href }) {
-  const body = (
-    <div className="h-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="mt-1 text-xl font-bold tabular-nums">{value}</dd>
-      {sub && <dd className="text-xs text-slate-500">{sub}</dd>}
-    </div>
-  )
-  return href ? <a href={href} className="block hover:opacity-90">{body}</a> : body
 }
 
 // Thin horizontal bars with the label and count always written out.

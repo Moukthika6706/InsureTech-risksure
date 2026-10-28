@@ -14,3 +14,8 @@ services:
       # Set this in the Render dashboard to your Vercel URL, e.g. https://risksure.vercel.app
       - key: ALLOWED_ORIGINS
         sync: false
+      # Rule assistant: set the key as a secret in the Render dashboard (never in git).
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5

@@ -5,14 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app import services
+from app import assistant, services
 from app.db import get_db
 from app.lifecycle import STATUSES
-from app.models import AuditEvent, Policy, Quote
+from app.models import AuditEvent, Policy, PublishedRule, Quote, now
 from app.schemas import (ActorRequest, AuditEventOut, IssueRequest, PolicyOut, QuoteDetail,
-                         QuoteRequest, QuoteSummary, UnderwriteRequest)
+                         QuoteRequest, QuoteSummary, RuleDraftRequest, RulePreviewRequest,
+                         RulePublishRequest, UnderwriteRequest)
 from engine.config import get_product, load_products
+from engine.preview import preview_rule
 from engine.quote import run_quote
+from engine.rules import load_rules, parse_rule
 
 router = APIRouter()
 Status = Literal[tuple(STATUSES)]   # lets /docs show the allowed values
@@ -155,3 +158,70 @@ def get_policy(policy_id: int, db: Session = Depends(get_db)):
     if p is None:
         raise HTTPException(404, f"Policy {policy_id} not found")
     return p
+
+
+# ----------------------------------------------------------------- rules
+
+@router.get("/rules", tags=["rules"])
+def list_rules(db: Session = Depends(get_db)):
+    """Active rules: config/rules.yaml plus rules published from the assistant."""
+    published = {p.rule_id: p for p in db.scalars(select(PublishedRule))}
+    out = [{**r.as_dict(), "source": "yaml"} for r in load_rules() if r.id not in published]
+    out += [{**p.rule, "enabled": p.enabled, "source": "published", "published_by": p.published_by,
+             "published_at": p.published_at, "source_text": p.source_text} for p in published.values()]
+    return out
+
+
+@router.get("/rules/examples", tags=["rules"])
+def rule_examples():
+    """Pre-written examples (also the assistant's fallback)."""
+    return list(assistant.load_examples())
+
+
+@router.post("/rules/draft", tags=["rules"])
+def draft_rule(req: RuleDraftRequest, db: Session = Depends(get_db), client=Depends(assistant.get_client)):
+    """English -> draft rule (AI, or the closest example if the AI is unavailable).
+    Valid drafts come with an impact preview. Nothing is saved."""
+    if req.product:
+        _product(req.product)
+    result = assistant.draft_rule(req.text, req.product, client=client)
+    result["preview"] = preview_rule(result["rule"], base_rules=services.active_rules(db)) \
+        if result["valid"] else None
+    return result
+
+
+@router.post("/rules/preview", tags=["rules"])
+def preview(req: RulePreviewRequest, db: Session = Depends(get_db)):
+    """Impact of a (possibly edited) rule on the sample book. Invalid rules -> 422."""
+    return preview_rule(req.rule, base_rules=services.active_rules(db))
+
+
+@router.post("/rules/publish", status_code=201, tags=["rules"])
+def publish_rule(req: RulePublishRequest, db: Session = Depends(get_db)):
+    """Save an approved rule. It is re-validated here: the browser is never trusted."""
+    rule = parse_rule(req.rule)                                   # RuleError -> 422
+    if not req.approved:
+        raise services.RequestError("Publishing needs approved: true after reviewing the impact preview")
+    existing = db.scalar(select(PublishedRule).where(PublishedRule.rule_id == rule.id))
+    in_yaml = any(r.id == rule.id for r in load_rules())
+    if (existing or in_yaml) and not req.replace:
+        raise HTTPException(409, f"A rule with id '{rule.id}' already exists. Send replace: true to replace it.")
+    impact = preview_rule(rule.as_dict(), base_rules=services.active_rules(db))
+    row = existing or PublishedRule(rule_id=rule.id)
+    row.product, row.rule, row.enabled = rule.product, rule.as_dict(), rule.enabled
+    row.source_text, row.published_by, row.published_at = req.source_text, req.published_by, now()
+    db.add(row)
+    db.commit()
+    return {"published": row.rule, "replaced": bool(existing or in_yaml), "preview": impact}
+
+
+@router.post("/rules/{rule_id}/disable", tags=["rules"])
+def disable_rule(rule_id: str, db: Session = Depends(get_db)):
+    """Switch off a published rule (rules.yaml rules are changed in config instead)."""
+    row = db.scalar(select(PublishedRule).where(PublishedRule.rule_id == rule_id))
+    if row is None:
+        raise HTTPException(404, f"No published rule '{rule_id}'")
+    row.enabled = False
+    row.rule = {**row.rule, "enabled": False}
+    db.commit()
+    return {"rule_id": rule_id, "enabled": False}

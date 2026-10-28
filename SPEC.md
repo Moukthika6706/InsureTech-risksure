@@ -140,10 +140,18 @@ Draft ──rate──► Quoted ──bind──► Bound ──issue──► 
 | `GET /rules` | Active rules (yaml + published) |
 | `POST /rules/preview` | Impact preview of a proposed rule |
 | `POST /rules/draft` | English text → validated rule JSON (Claude API, with fallback examples) |
-| `POST /rules/publish` | Save an approved rule |
+| `POST /rules/publish` | Save an approved rule (`approved: true` required; `replace: true` to reuse an id) |
+| `GET /rules/examples`, `POST /rules/{id}/disable` | Fallback examples; switch off a published rule |
 | `GET /dashboard/summary?product=` | Portfolio stats |
 
-**Rule assistant safety:** the AI only turns text into a rule. The result is checked against a strict Pydantic schema (known fields, valid operators, value types). The underwriter sees the impact preview and must approve before anything is published. The API key comes from `ANTHROPIC_API_KEY` and the model name from `ANTHROPIC_MODEL`; neither is ever committed.
+**Rule assistant** (`app/assistant.py`): the AI only turns text into a rule.
+1. **Draft.** Claude is called with **structured outputs**, so the reply is JSON matching a flat draft schema: one `all`/`any` group, because structured outputs don't support recursive schemas. The field and product lists in that schema are generated from the product configs.
+2. **Prompt.** It lists every field with its type and allowed values. The underwriter's text is fenced in `<request>` tags and treated as data. Requests that can't be expressed (e.g. credit score) must come back `feasible: false`, never as an approximation.
+3. **Validate.** The draft is converted to our rule format and validated by `engine.rules.parse_rule`, the same check that `rules.yaml` passes. If it fails, Claude gets one repair attempt using our exact error messages.
+4. **Preview and approve.** The underwriter sees the impact preview. `POST /rules/publish` re-validates on the server and requires `approved: true`; reusing an existing id requires `replace: true`. Published rules are stored in `PublishedRule` and can be switched off with `POST /rules/{id}/disable`.
+5. **Fallback.** No key, an auth or rate-limit error, a timeout, a refusal or invalid JSON all lead to the closest example from `config/rule_examples.yaml` (word overlap), with the reason shown, so the screen still works.
+
+Configuration: the key comes from `ANTHROPIC_API_KEY` and the model from `ANTHROPIC_MODEL` (default `claude-opus-5-5`); neither is ever committed. Calls use effort `low`, a 30 s timeout with 1 retry, and server-side refusal fallback (`fallbacks: "default"`) on models that support it.
 
 ## Screens
 1. Product picker + quote wizard (forms generated from product config)

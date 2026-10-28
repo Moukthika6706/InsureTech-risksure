@@ -81,3 +81,20 @@ class QuoteDetail(QuoteSummary):
     underwriter_note: Optional[str]
     policy: Optional[PolicyOut] = None
     events: list[AuditEventOut] = []
+
+
+class RuleDraftRequest(BaseModel):
+    text: str = Field(min_length=5, max_length=500, description="The rule in plain English")
+    product: Optional[str] = Field(None, description="Product the underwriter is working on (a hint)")
+
+
+class RulePreviewRequest(BaseModel):
+    rule: dict[str, Any]
+
+
+class RulePublishRequest(BaseModel):
+    rule: dict[str, Any]
+    approved: bool = Field(description="Must be true: the underwriter reviewed the preview")
+    published_by: str = Field(min_length=2)
+    source_text: Optional[str] = None
+    replace: bool = Field(False, description="Allow replacing an existing rule with the same id")

@@ -1,0 +1,81 @@
+# Pre-written rule drafts for the plain-English rule assistant.
+# Used (1) as worked examples in the prompt sent to Claude, and (2) as the
+# fallback when the Claude API is unavailable: the closest example to the
+# underwriter's text is offered instead, so the rules screen still works.
+# Every example is validated by the same rules engine as config/rules.yaml.
+kind: rule_examples
+examples:
+  - text: Refer anyone under 21 who drives a sports car
+    rule:
+      id: auto_under21_sports_refer
+      product: auto
+      description: Refer drivers under 21 with a sports car
+      when:
+        all:
+          - {field: driver_age, op: lt, value: 21}
+          - {field: vehicle_type, op: eq, value: sports}
+      action: refer
+      reason: Young driver with a high-performance vehicle needs manual review.
+
+  - text: Add 20% to the premium for cars parked on the street in metro cities
+    rule:
+      id: auto_street_parking_metro_load
+      product: auto
+      description: Load street-parked cars in tier 1 cities by 20%
+      when:
+        all:
+          - {field: parking, op: eq, value: street}
+          - {field: city_tier, op: eq, value: 1}
+      action: load
+      load_pct: 20
+      reason: Higher theft and damage risk for cars parked on metro streets.
+
+  - text: Decline homes in flood zone 3 with an asbestos roof
+    rule:
+      id: home_flood3_asbestos_decline
+      product: home
+      description: Decline asbestos-roofed homes in high flood zones
+      when:
+        all:
+          - {field: flood_zone, op: eq, value: 3}
+          - {field: roof_type, op: eq, value: asbestos}
+      action: decline
+      reason: Fragile roof in a high flood-risk zone is outside our appetite.
+
+  - text: Give a 10% discount to gated homes that have both an alarm and CCTV
+    rule:
+      id: home_secure_gated_credit
+      product: home
+      description: 10% credit for gated homes with alarm and CCTV
+      when:
+        all:
+          - {field: gated_community, op: eq, value: true}
+          - {field: has_alarm, op: eq, value: true}
+          - {field: has_cctv, op: eq, value: true}
+      action: load
+      load_pct: -10
+      reason: Strong security features reduce burglary risk.
+
+  - text: Refer warehouses or factories with more than 50 staff and no sprinklers
+    rule:
+      id: business_large_no_sprinkler_refer
+      product: business
+      description: Refer large warehouses and factories without sprinklers
+      when:
+        all:
+          - {field: business_type, op: in, value: [warehouse, manufacturing_unit]}
+          - {field: staff_count, op: gt, value: 50}
+          - {field: sprinklers, op: eq, value: false}
+      action: refer
+      reason: Large premises with stock and no sprinklers need a fire survey.
+
+  - text: Refer every very high risk applicant, whatever the product
+    rule:
+      id: all_very_high_risk_refer
+      product: "*"
+      description: Refer every very high risk applicant
+      when:
+        all:
+          - {field: risk_band, op: eq, value: very_high}
+      action: refer
+      reason: Very high risk band needs an underwriter's review.

@@ -3,6 +3,7 @@ uvicorn==0.54.0
 pydantic==2.14.1
 sqlalchemy==2.1.6
 pyyaml==6.0.3
+anthropic==2.3.0
 
 # ML: pinned exactly so models/auto_risk.joblib loads the same in production
 numpy==2.5.4

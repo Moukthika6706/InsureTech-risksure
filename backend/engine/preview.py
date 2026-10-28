@@ -108,7 +108,7 @@ def preview_rule(raw_rule: dict, base_rules=None, config_dir: Path = CONFIG_DIR)
                           "premium_before": round(r[3], 2), "premium_after": round(r[5], 2)}
                          for r in hit[:EXAMPLES]],
         })
-    return {"rule": rule.model_dump(), "replaces_existing": replaces, "products": reports}
+    return {"rule": rule.as_dict(), "replaces_existing": replaces, "products": reports}
 
 
 def _counts(decisions) -> dict:

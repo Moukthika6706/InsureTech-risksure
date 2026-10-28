@@ -12,6 +12,7 @@ from app.lifecycle import InvalidTransition
 from app.routes import router
 from app.services import RequestError
 from engine.rating import ApplicantError
+from engine.rules import RuleError
 
 
 @asynccontextmanager
@@ -44,6 +45,12 @@ async def applicant_error(_: Request, e: ApplicantError):
 async def invalid_transition(_: Request, e: InvalidTransition):
     """E.g. binding a referred quote: the request conflicts with the quote's state."""
     return JSONResponse(status_code=409, content={"detail": str(e)})
+
+
+@app.exception_handler(RuleError)
+async def rule_error(_: Request, e: RuleError):
+    """An invalid rule (from YAML, the assistant or the browser): list every problem."""
+    return JSONResponse(status_code=422, content={"detail": "Invalid rule", "errors": e.errors})
 
 
 @app.exception_handler(RequestError)

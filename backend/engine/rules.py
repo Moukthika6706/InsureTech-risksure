@@ -80,6 +80,10 @@ class Rule(BaseModel):
             raise ValueError("load_pct is only allowed when action is 'load'")
         return self
 
+    def as_dict(self) -> dict:
+        """Plain dict without empty fields (no "any": null next to "all")."""
+        return self.model_dump(exclude_none=True)
+
 
 # ------------------------------------------------------------ validation
 

@@ -11,7 +11,9 @@ The user is new to insurance. Explain insurance terms in plain language and keep
 3. **Risk scoring**: Auto uses a gradient boosting model (claim probability 0 to 1) with SHAP top factors. Home and Business use the points scorecard in `config/scorecards.yaml`, which is the single source of truth (read it, never duplicate it).
 4. **Underwriting rules engine**: plain, testable Python (no AI). It outputs a decision (auto_approve / approve_adjusted / refer / decline), the adjusted premium and rule hits with reasons. It has a preview function that shows a proposed rule's impact on the sample applicants.
 5. **Plain-English rule assistant**: Claude API turns English into rule JSON. The result is validated with a strict schema, the impact is previewed, and nothing is published until the underwriter approves. The AI never prices or decides. Key from `ANTHROPIC_API_KEY`, model from `ANTHROPIC_MODEL`. There are fallback example rules for when the API fails.
-6. **Quote lifecycle**: Draft, Quoted, Referred, Bound, Issued. Transitions are enforced and every change writes an AuditEvent.
+6. **Quote lifecycle**: Draft, Quoted, Referred, Declined, Bound, Issued. Transitions are enforced and every change writes an AuditEvent.
+
+7. **Published rules live in the DB** (`PublishedRule` table), merged with `config/rules.yaml` at evaluation time. Render's disk is wiped on redeploy, so the app never writes to YAML at runtime.
 
 ## Stack
 - Backend: Python 3.12, FastAPI, SQLAlchemy + SQLite, Pydantic, pytest (`backend/app`, `backend/engine`, `backend/ml`, `backend/tests`)

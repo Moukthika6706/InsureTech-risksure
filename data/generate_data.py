@@ -14,6 +14,7 @@ import yaml
 SEED = 42
 rng = np.random.default_rng(SEED)
 HERE = os.path.dirname(os.path.abspath(__file__))
+CONFIG_DIR = os.path.join(HERE, "..", "config")  # project-root config/, the single source of truth
 N_AUTO, N_HOME, N_BUS = 5000, 2500, 1500
 
 def sigmoid(x):
@@ -292,8 +293,8 @@ def gen_business(n):
 
 # ---------------------------------------------------------------------- main
 if __name__ == "__main__":
-    os.makedirs(os.path.join(HERE, "config"), exist_ok=True)
-    with open(os.path.join(HERE, "config", "scorecards.yaml"), "w") as fh:
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(os.path.join(CONFIG_DIR, "scorecards.yaml"), "w") as fh:
         yaml.safe_dump(SCORECARDS, fh, sort_keys=False)
 
     auto, home, bus = gen_auto(N_AUTO), gen_home(N_HOME), gen_business(N_BUS)

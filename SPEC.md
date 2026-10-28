@@ -89,11 +89,14 @@ Precedence: decline > refer > approve_adjusted > auto_approve. Every rule hit is
 ## Quote lifecycle
 ```
 Draft ──rate──► Quoted ──bind──► Bound ──issue──► Issued
-  │               ▲
-  └──rate──► Referred ──underwriter approve (optional premium override)──┘
+  │ │             ▲
+  │ └──rate──► Referred ──underwriter approve (optional premium override)──┘
+  │               │
+  │               └──underwriter decline──► Declined
+  └──rate (decision = decline)──────────────► Declined
 ```
-- `rate` sends the quote to Referred if the decision is `refer`, otherwise to Quoted.
-- A quote whose decision is `decline` cannot be bound.
+- `rate` sends the quote to Declined if the decision is `decline`, to Referred if it is `refer`, otherwise to Quoted.
+- Declined and Issued are final states: nothing can move out of them.
 - Invalid transitions (e.g. Draft → Bound) return HTTP 409. Every transition writes an AuditEvent.
 
 ## REST endpoints
@@ -106,7 +109,7 @@ Draft ──rate──► Quoted ──bind──► Bound ──issue──► 
 | `GET /quotes?status=&product=`, `GET /quotes/{id}` | List / detail |
 | `POST /quotes/{id}/bind`, `POST /quotes/{id}/issue` | Lifecycle steps (issue creates a Policy) |
 | `GET /underwriting/queue` | Referred quotes |
-| `POST /quotes/{id}/underwrite` | `{action: approve, override_premium?, note}` |
+| `POST /quotes/{id}/underwrite` | `{action: approve \| decline, override_premium?, note}` |
 | `GET /quotes/{id}/audit` | Audit timeline for one quote |
 | `GET /policies`, `GET /policies/{id}` | Issued policies |
 | `GET /rules` | Active rules (yaml + published) |

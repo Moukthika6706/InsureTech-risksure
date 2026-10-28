@@ -1,0 +1,153 @@
+# Small Business package (shop / restaurant / office) — illustrative rates only.
+kind: product
+code: business
+name: Small Business
+version: "1.0"
+description: Package policy for small businesses — property, stock, liability and more.
+currency: INR
+risk:
+  method: scorecard
+  scorecard: business
+min_premium: 2500
+
+fields:
+  - name: business_type
+    label: Business type
+    type: select
+    options:
+      - {value: it_office, label: IT / office}
+      - {value: clinic, label: Clinic}
+      - {value: retail_shop, label: Retail shop}
+      - {value: salon, label: Salon}
+      - {value: hotel_guesthouse, label: Hotel / guesthouse}
+      - {value: warehouse, label: Warehouse}
+      - {value: restaurant, label: Restaurant}
+      - {value: manufacturing_unit, label: Manufacturing unit}
+    default: retail_shop
+    group: Business
+  - name: city_tier
+    label: City tier
+    type: select
+    options:
+      - {value: 1, label: "Tier 1 metro (Mumbai, Delhi, Bengaluru...)"}
+      - {value: 2, label: "Tier 2 city (Jaipur, Kochi, Indore...)"}
+    default: 1
+    group: Business
+  - {name: staff_count, label: Number of staff, type: int, min: 1, max: 5000, default: 8, group: Business}
+  - {name: annual_revenue_inr, label: Annual revenue, type: int, min: 0, max: 5000000000, default: 10000000, group: Business}
+  - {name: handles_cash, label: Handles significant cash, type: bool, default: false, group: Business}
+  - {name: prior_claims_5y, label: Claims in last 5 years, type: int, min: 0, max: 10, default: 0, group: Business}
+  - {name: premises_sqft, label: Premises area (sq ft), type: int, min: 100, max: 200000, default: 1200, group: Premises}
+  - {name: building_age_years, label: Building age (years), type: int, min: 0, max: 150, default: 15, group: Premises}
+  - name: flood_zone
+    label: Flood zone
+    type: select
+    options:
+      - {value: 1, label: Zone 1 — low flood risk}
+      - {value: 2, label: Zone 2 — moderate flood risk}
+      - {value: 3, label: Zone 3 — high flood risk}
+    default: 1
+    group: Premises
+  - {name: fire_safety_certificate, label: Fire safety (NOC) certificate, type: bool, default: false, group: Premises}
+  - {name: sprinklers, label: Sprinkler system, type: bool, default: false, group: Premises}
+  - {name: property_sum_insured_inr, label: Property sum insured, type: int, min: 100000, max: 1000000000, default: 5000000, help: Rebuild cost of premises plus fittings and equipment., group: Cover}
+  - {name: stock_value_inr, label: Stock value, type: int, min: 0, max: 1000000000, default: 500000, help: Value of goods held for sale or production., group: Cover}
+  - name: liability_limit_inr
+    label: Public liability limit
+    type: select
+    options:
+      - {value: 2500000, label: ₹25 lakh}
+      - {value: 5000000, label: ₹50 lakh}
+      - {value: 10000000, label: ₹1 crore}
+      - {value: 20000000, label: ₹2 crore}
+    default: 5000000
+    help: Maximum payout if a customer or visitor is injured or their property damaged.
+    group: Cover
+
+coverages:
+  - code: property_fire
+    name: Property (fire & allied perils)
+    description: Fire, flood, storm and earthquake damage to the premises and equipment.
+    mandatory: true
+    basis: {type: per_mille_of, field: property_sum_insured_inr}
+    rate: 0.6
+  - code: stock
+    name: Stock
+    description: Goods held for sale or production.
+    default: true
+    basis: {type: per_mille_of, field: stock_value_inr}
+    rate: 0.8
+  - code: public_liability
+    name: Public liability
+    description: Injury or property damage to customers and visitors.
+    default: true
+    basis: {type: per_mille_of, field: liability_limit_inr}
+    rate: 0.5
+  - code: burglary
+    name: Burglary
+    description: Theft of stock and contents after forced entry.
+    default: false
+    basis: {type: per_mille_of, field: stock_value_inr}
+    rate: 0.5
+  - code: money
+    name: Money in transit & safe
+    description: Cash stolen from the premises or on the way to the bank.
+    default: false
+    basis: {type: flat}
+    rate: 1500
+  - code: business_interruption
+    name: Business interruption
+    description: Lost income while the business is closed after an insured event.
+    default: false
+    basis: {type: percent_of, field: annual_revenue_inr}
+    rate: 0.05
+
+rating_factors:
+  - name: business_type
+    label: Business type
+    field: business_type
+    type: map
+    values: {it_office: 0.80, clinic: 0.90, retail_shop: 1.00, salon: 1.00,
+             hotel_guesthouse: 1.20, warehouse: 1.30, restaurant: 1.40, manufacturing_unit: 1.60}
+  - name: city_tier
+    label: City tier
+    field: city_tier
+    type: map
+    values: {1: 1.05, 2: 1.00}
+  - name: flood_zone
+    label: Flood zone
+    field: flood_zone
+    type: map
+    values: {1: 1.00, 2: 1.20, 3: 1.50}
+  - name: building_age
+    label: Building age
+    field: building_age_years
+    type: bands
+    bands: [[10, 1.00], [25, 1.08], [40, 1.15], [999, 1.25]]
+  - name: staff_count
+    label: Staff count
+    field: staff_count
+    type: bands
+    bands: [[10, 1.00], [50, 1.05], [200, 1.10], [1000000, 1.20]]
+  - name: prior_claims
+    label: Claims history
+    field: prior_claims_5y
+    type: bands
+    bands: [[0, 1.00], [1, 1.20], [2, 1.40], [99, 1.60]]
+
+modifiers:
+  - name: fire_certificate
+    label: Fire safety certificate discount
+    field: fire_safety_certificate
+    type: map
+    values: {true: 0.90, false: 1.0}
+  - name: sprinklers
+    label: Sprinkler discount
+    field: sprinklers
+    type: map
+    values: {true: 0.85, false: 1.0}
+  - name: cash
+    label: Cash handling surcharge
+    field: handles_cash
+    type: map
+    values: {true: 1.05, false: 1.0}

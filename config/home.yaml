@@ -1,0 +1,160 @@
+# Homeowners — illustrative rates only, not a real tariff.
+kind: product
+code: home
+name: Homeowners
+version: "1.0"
+description: Building and contents cover for a house or flat, including fire, flood and burglary.
+currency: INR
+risk:
+  method: scorecard         # transparent points scorecard in config/scorecards.yaml
+  scorecard: home
+min_premium: 1000
+
+fields:
+  - name: city_tier
+    label: City tier
+    type: select
+    options:
+      - {value: 1, label: "Tier 1 metro (Mumbai, Delhi, Bengaluru...)"}
+      - {value: 2, label: "Tier 2 city (Jaipur, Kochi, Indore...)"}
+    default: 1
+    group: Property
+  - {name: area_sqft, label: Built-up area (sq ft), type: int, min: 200, max: 10000, default: 1100, group: Property}
+  - {name: home_value_inr, label: Market value of home, type: int, min: 500000, max: 100000000, default: 12000000, group: Property}
+  - {name: building_age_years, label: Building age (years), type: int, min: 0, max: 150, default: 15, group: Property}
+  - name: construction
+    label: Construction type
+    type: select
+    options:
+      - {value: rcc_frame, label: RCC frame (concrete)}
+      - {value: steel, label: Steel frame}
+      - {value: load_bearing_brick, label: Load-bearing brick}
+    default: rcc_frame
+    group: Property
+  - name: roof_type
+    label: Roof type
+    type: select
+    options:
+      - {value: rcc_slab, label: RCC slab}
+      - {value: tiled, label: Tiled}
+      - {value: metal_sheet, label: Metal sheet}
+      - {value: asbestos, label: Asbestos sheet}
+    default: rcc_slab
+    group: Property
+  - name: occupancy
+    label: Occupancy
+    type: select
+    options:
+      - {value: owner_occupied, label: Owner lives here}
+      - {value: rented_out, label: Rented out}
+    default: owner_occupied
+    group: Property
+  - name: flood_zone
+    label: Flood zone
+    type: select
+    options:
+      - {value: 1, label: Zone 1 — low flood risk}
+      - {value: 2, label: Zone 2 — moderate flood risk}
+      - {value: 3, label: Zone 3 — high flood risk}
+    default: 1
+    group: Location & safety
+  - {name: fire_station_km, label: Distance to fire station (km), type: float, min: 0, max: 100, default: 2.5, group: Location & safety}
+  - {name: gated_community, label: Gated community, type: bool, default: false, group: Location & safety}
+  - {name: has_alarm, label: Burglar alarm, type: bool, default: false, group: Location & safety}
+  - {name: has_cctv, label: CCTV, type: bool, default: false, group: Location & safety}
+  - {name: prior_claims_5y, label: Claims in last 5 years, type: int, min: 0, max: 10, default: 0, group: Location & safety}
+  - name: building_sum_insured_inr
+    label: Building sum insured
+    type: int
+    min: 100000
+    max: 100000000
+    default: 9000000
+    help: Cost to rebuild the structure (usually less than market value, which includes land).
+    group: Cover
+  - name: contents_sum_insured_inr
+    label: Contents sum insured
+    type: int
+    min: 0
+    max: 20000000
+    default: 1000000
+    help: Value of furniture, appliances and belongings.
+    group: Cover
+
+coverages:
+  - code: building
+    name: Building
+    description: Fire, flood, earthquake and other damage to the structure.
+    mandatory: true
+    basis: {type: per_mille_of, field: building_sum_insured_inr}
+    rate: 0.35
+  - code: contents
+    name: Contents
+    description: Furniture, appliances and personal belongings.
+    default: true
+    basis: {type: per_mille_of, field: contents_sum_insured_inr}
+    rate: 1.0
+  - code: burglary
+    name: Burglary & theft
+    description: Theft of contents after forced entry.
+    default: false
+    basis: {type: per_mille_of, field: contents_sum_insured_inr}
+    rate: 0.8
+
+rating_factors:
+  - name: city_tier
+    label: City tier
+    field: city_tier
+    type: map
+    values: {1: 1.05, 2: 1.00}
+  - name: flood_zone
+    label: Flood zone
+    field: flood_zone
+    type: map
+    values: {1: 1.00, 2: 1.25, 3: 1.60}
+  - name: construction
+    label: Construction type
+    field: construction
+    type: map
+    values: {rcc_frame: 1.00, steel: 1.05, load_bearing_brick: 1.15}
+  - name: roof_type
+    label: Roof type
+    field: roof_type
+    type: map
+    values: {rcc_slab: 1.00, tiled: 1.15, metal_sheet: 1.10, asbestos: 1.25}
+  - name: building_age
+    label: Building age
+    field: building_age_years
+    type: bands
+    bands: [[10, 1.00], [25, 1.08], [40, 1.18], [999, 1.30]]
+  - name: fire_station
+    label: Distance to fire station
+    field: fire_station_km
+    type: bands
+    bands: [[2, 1.00], [5, 1.05], [10, 1.12], [9999, 1.25]]
+  - name: prior_claims
+    label: Claims history
+    field: prior_claims_5y
+    type: bands
+    bands: [[0, 1.00], [1, 1.20], [2, 1.40], [99, 1.60]]
+  - name: occupancy
+    label: Occupancy
+    field: occupancy
+    type: map
+    values: {owner_occupied: 1.00, rented_out: 1.10}
+
+modifiers:
+  - name: alarm
+    label: Burglar alarm discount
+    field: has_alarm
+    type: map
+    values: {true: 0.95, false: 1.0}
+  - name: cctv
+    label: CCTV discount
+    field: has_cctv
+    type: map
+    values: {true: 0.97, false: 1.0}
+  - name: gated
+    label: Gated community discount
+    field: gated_community
+    type: map
+    values: {true: 0.95, false: 1.0}

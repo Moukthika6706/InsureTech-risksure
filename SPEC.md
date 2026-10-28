@@ -33,9 +33,12 @@ React (Vite, Tailwind, Recharts)  ──REST/JSON──►  FastAPI
 
 ## Data model
 **Defined in config (YAML, versioned in git)**
-- **Product**: `code`, `name`, `version`, `fields` (each field has name, label, type, options, min and max; the frontend builds its forms from this list), `coverages`, `rating_tables`, `modifiers`, `risk_method` (`ml_model` or `scorecard`).
-- **Coverage**: `code`, `name`, `mandatory`, `basis` (`flat`, or a percentage / per-mille of a sum-insured field), `base_rate`.
-- **RatingTable**: `factor`, `field`, and a lookup: either an exact-match map (`city_tier: {1: 1.15, 2: 1.0}`) or numeric bands (`[[upper_bound, multiplier], ...]`, the same band style as `scorecards.yaml`).
+- **Product** (`config/<code>.yaml`, marked `kind: product`; validated by `engine/schema.py` on load): `code`, `name`, `version`, `risk` (`method: ml_model` or `scorecard`), `min_premium`, `fields`, `coverages`, `rating_factors`, `modifiers`. Each field has name, label, type (int, float, select, bool), options, min, max, default, help and group (wizard page); the frontend builds its forms from this list.
+- **Coverage**: `code`, `name`, `mandatory`, `default` (pre-selected if optional), `basis` (`flat`, `percent_of` or `per_mille_of` a sum-insured field), `rate`.
+- **RatingTable** (a `rating_factors` or `modifiers` entry): `name`, `label`, `field`, and a lookup of one of three types:
+  - `map`: exact match, e.g. `{1: 1.10, 2: 1.0}`
+  - `bands`: `[[upper_bound, multiplier], ...]`, where the first band whose upper bound is ≥ the value applies (the same style as `scorecards.yaml`)
+  - `percent_discount`: multiplier = 1 − value/100, used for NCB
 - **Rule** (`config/rules.yaml`):
   ```yaml
   - id: young_sports_refer
@@ -60,14 +63,14 @@ React (Vite, Tailwind, Recharts)  ──REST/JSON──►  FastAPI
 
 ## Premium formula
 ```
-coverage premium   = base_rate × exposure            (e.g. 2.2% × IDV for auto own damage)
+coverage premium   = rate × exposure                 (e.g. 2% × IDV for auto own damage)
 base premium       = sum of selected coverage premiums
 rated premium      = base premium × factor_1 × factor_2 × ...   (rating tables)
 modified premium   = rated premium × modifier_1 × ...           (NCB, anti-theft, alarm, etc.)
-final premium      = modified premium × (1 + total underwriting load %)   (from rules)
-                     then floored at the product's minimum premium
+                     floored at the product's minimum premium    (engine/rating.py ends here)
+final premium      = modified premium × (1 + total underwriting load %)   (rules engine)
 ```
-Every step is returned as a breakdown row `{step, label, multiplier, amount_change, running_total}`, and the UI draws it as a waterfall chart.
+Every step is returned as a breakdown row `{step, kind, code, label, detail, value, multiplier, amount_change, running_total}`, and the UI draws it as a waterfall chart. Amounts are rounded at each step, so the bars add up exactly to the premium.
 
 **Risk score** (separate from rating):
 - Auto: a gradient boosting model predicts the probability of a claim next year (0 to 1). SHAP lists the top factors pushing that number up or down.

@@ -24,7 +24,9 @@ from engine.config import CONFIG_DIR, load_products, read_yaml
 SEED = 42
 DEFAULT_COUNT = 400
 MIX = {"auto": 0.45, "home": 0.30, "business": 0.25}   # share of demo quotes per product
-DAYS = 30
+DAYS = 30                # quotes are spread over the last 30 days...
+QUIET_DAYS = 2           # ...ending 2 days ago, so follow-up steps (max 3 x 12h) never land in the future
+MAX_GAP_MINUTES = 60 * 12
 
 # What customers and underwriters do with a decided quote (demo behaviour, not data).
 BIND_RATE = 0.6          # quoted -> bought
@@ -64,7 +66,7 @@ def _restamp(db, quote: Quote, start: datetime, rng: random.Random):
     t = start
     for e in db.scalars(select(AuditEvent).where(AuditEvent.quote_id == quote.id).order_by(AuditEvent.id)):
         e.created_at = t
-        t += timedelta(minutes=rng.randint(1, 4) if e.action in ("create", "rate") else rng.randint(30, 60 * 48))
+        t += timedelta(minutes=rng.randint(1, 4) if e.action in ("create", "rate") else rng.randint(30, MAX_GAP_MINUTES))
     quote.created_at, quote.updated_at = start, t
     if quote.policy:
         quote.policy.issued_at = t
@@ -88,7 +90,7 @@ def seed(count: int = DEFAULT_COUNT, reset: bool = False, verbose: bool = True) 
         for i, (code, row) in enumerate(sample_applicants(count, rng), start=1):
             q = services.create_quote(db, code, row, None, "customer", source="sample",
                                       external_ref=row["applicant_id"])
-            created = now - timedelta(days=DAYS) + timedelta(seconds=rng.uniform(0, DAYS * 86400))
+            created = now - timedelta(days=DAYS) + timedelta(seconds=rng.uniform(0, (DAYS - QUIET_DAYS) * 86400))
             if q.status == "referred":
                 outcome = rng.choices([o for o, _ in REFERRAL_OUTCOMES], [w for _, w in REFERRAL_OUTCOMES])[0]
                 who = rng.choice(UNDERWRITERS)

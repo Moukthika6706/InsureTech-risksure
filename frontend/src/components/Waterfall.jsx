@@ -44,6 +44,8 @@ function useNarrow() {
 export default function Waterfall({ steps, premium, highlight }) {
   const [view, setView] = useState('chart')
   const narrow = useNarrow()
+  // Respect the OS 'reduce motion' setting: draw bars without the grow-in animation.
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const rows = toBars(steps, premium)
   const neutral = steps.filter((s) => s.amount_change === 0).length
 
@@ -71,7 +73,7 @@ export default function Waterfall({ steps, premium, highlight }) {
                 tick={{ fontSize: narrow ? 11 : 12, fill: '#334155' }} axisLine={false} tickLine={false} />
               <Tooltip content={<StepTooltip />} cursor={{ fill: '#f1f5f9' }} isAnimationActive={false} />
               <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
-              <Bar dataKey="size" stackId="w" radius={4} animationDuration={300}>
+              <Bar dataKey="size" stackId="w" radius={4} animationDuration={300} isAnimationActive={!reduceMotion}>
                 {rows.map((r) => <Cell key={r.key} fill={r.color} />)}
                 <LabelList dataKey="total" content={<TotalLabel rows={rows} />} />
               </Bar>

@@ -1,30 +1,285 @@
-# RiskSure
+<div align="center">
+  <img src="docs/logo.svg" alt="RiskSure logo" width="120" height="120" />
 
-A small, working version of the software a property & casualty (P&C) insurer uses to sell policies. It covers three India-based products: **Personal Auto, Homeowners and Small Business** (amounts in ₹).
+  <h1>RiskSure</h1>
 
-A customer asks for a **quote**. RiskSure **rates** it (works out the price, step by step) and **scores the risk**. It then **underwrites** it: approve, approve with a loading, refer to a human underwriter, or decline. An accepted quote is **bound** (the customer buys it) and **issued** as a policy. Every change is recorded in an audit trail.
+  <p><b>Intelligence Behind Every Insured Decision.</b></p>
 
-> **All data, rates and models are synthetic and illustrative. This is not real actuarial pricing.** The applicants come from `data/generate_data.py` (fixed seed). The auto data's risk signal was deliberately strengthened so the demo model has a clear pattern to learn; see [Data and models](#data-and-models).
+  <p>A config-driven insurance quoting and underwriting system that prices every policy step by step, scores the risk, and explains exactly why each customer was approved, referred or declined.</p>
 
-**Live demo:** https://insure-tech-risksure.vercel.app · **API docs:** https://insuretech-risksure.onrender.com/docs
+  <a href="https://insure-tech-risksure.vercel.app"><img src="https://img.shields.io/badge/Live_demo-insure--tech--risksure.vercel.app-2453f0?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo" /></a>
+  <a href="https://insuretech-risksure.onrender.com/docs"><img src="https://img.shields.io/badge/API_docs-Swagger-11171d?style=for-the-badge&logo=swagger&logoColor=white" alt="API docs" /></a>
 
-> The API runs on Render's free plan, which sleeps after 15 idle minutes: the first request after a pause can take 30–60 s. Each restart re-creates the 400-quote demo book, so anything you add is reset.
+  <br />
+
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12" />
+  <img src="https://img.shields.io/badge/FastAPI-0.162-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/scikit--learn-1.9-F7931E?logo=scikitlearn&logoColor=white" alt="scikit-learn" />
+  <img src="https://img.shields.io/badge/tests-147_passing-2ea44f?logo=pytest&logoColor=white" alt="147 tests passing" />
+  <a href="https://github.com/Moukthika6706/InsureTech-risksure/issues"><img src="https://img.shields.io/github/issues/Moukthika6706/InsureTech-risksure" alt="GitHub issues" /></a>
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs welcome" />
+</div>
 
 ---
 
-## What you can do in the app
+> *"Every price must be explainable, every decision auditable — because in insurance, trust is the product."*
 
-| Screen | What it shows |
-|---|---|
-| **Quote wizard** | Pick a product; the form is generated from that product's YAML config (one page per field group, then coverages, then review). |
-| **Quote result** | The decision, the premium as a **waterfall chart** (base cover → each rating factor → discounts → underwriting loading), the top risk factors (SHAP for auto, scorecard points for home and business), the rules that fired, and bind → issue. |
-| **What-if simulator** | Sliders for every answer; each change re-prices live through `POST /rate` (nothing is saved). |
-| **Underwriting queue** | Referred quotes, oldest first. Approve (optionally at a different premium) or decline, with a required reason. |
-| **Audit trail** | Every status change on a quote: who, when, why. |
-| **Rules** | Type a rule in plain English; Claude drafts it in RiskSure's rule format, the engine validates it, an impact preview runs it over 9,000 sample applicants, and the underwriter approves before it is published. |
-| **Dashboard** | Quotes, policies, written premium, straight-through rate, referral rate, decision and risk-band mix, recent activity, filtered by product. |
+## 📌 Overview
 
-## Architecture
+RiskSure is a small, working version of the policy software a **property & casualty (P&C) insurer** uses to sell insurance. It covers three India-based products: **Personal Auto, Homeowners and Small Business**, with all amounts in rupees.
+
+A customer asks for a **quote**. RiskSure:
+1. **rates** it: works out the price, step by step
+2. **scores the risk**: a machine-learning model for cars, a transparent points scorecard for homes and businesses
+3. **underwrites** it: approve, approve with a loading (an extra charge), refer to a human underwriter, or decline
+
+An accepted quote is **bound** (the customer buys it) and **issued** as a policy. Every step is recorded in an audit trail.
+
+It is built for two kinds of user:
+- **customers**, who want a fair price they can understand
+- **underwriters**, who need to control the rules, review difficult cases and see the effect of every decision on the whole portfolio
+
+> **All data, rates and models are synthetic and illustrative. This is not real actuarial pricing or an insurance offer.** See [Data and models](#-data-and-models) for exactly what is real and what is simulated.
+
+**Try it:** [insure-tech-risksure.vercel.app](https://insure-tech-risksure.vercel.app) · [API docs](https://insuretech-risksure.onrender.com/docs)
+
+> The API runs on Render's free plan, which sleeps after 15 idle minutes, so the first request after a pause can take 30–60 seconds. Each restart re-creates the 400-quote demo book, so anything you add is reset.
+
+---
+
+## 📸 Project Preview
+
+<p align="center">
+  <img src="docs/screenshots/01-landing.png" alt="RiskSure landing page: tagline, the route of a quote, and a live example quote" width="100%" />
+</p>
+
+| Quote result: waterfall, risk factors, rules | Underwriting queue |
+| --- | --- |
+| <img src="docs/screenshots/02-quote-result.png" alt="Quote result with premium waterfall, SHAP risk factors and the rule that referred it" /> | <img src="docs/screenshots/04-underwriting-queue.png" alt="Underwriting queue of referred quotes" /> |
+| **Quote wizard (generated from YAML)** | **Plain-English rule assistant** |
+| <img src="docs/screenshots/03-quote-wizard.png" alt="Quote wizard built from the product configuration" /> | <img src="docs/screenshots/05-rules-assistant.png" alt="Rules screen with the plain-English rule assistant" /> |
+
+<details>
+<summary><b>Portfolio dashboard</b></summary>
+<br />
+<img src="docs/screenshots/06-dashboard.png" alt="Portfolio dashboard with KPIs, decision mix and risk bands" />
+</details>
+
+---
+
+## ✨ Features
+
+All features below are implemented and working, locally and in the live demo.
+
+- **Config-driven products.** Each product is one YAML file: its questions, covers, base rates, rating tables, discounts and risk method. The engine has no product code at all, and a new product needs only a new YAML file (a test proves this with a "Bicycle" product).
+- **Quote wizard generated from config.** The forms for all three products are built from that YAML, with validation that mirrors the server's.
+- **Explainable premium.** Every quote returns its full breakdown: base cover, each rating factor and its multiplier, discounts, and underwriting loadings. It is drawn as a **waterfall chart**, with a table view.
+- **ML risk scoring for auto.** A gradient-boosting model predicts the chance of a claim next year, and **SHAP** shows which answers pushed this applicant's risk up or down.
+- **Scorecards for home and business.** A transparent points scorecard (0–100) read from `config/scorecards.yaml`, its single source of truth.
+- **Underwriting rules engine.** Plain, tested Python with no AI. Rules can decline, refer to a human, or add a % loading, and each one shows a human-readable reason. Precedence: decline > refer > loading > auto-approve.
+- **Impact preview.** Before a rule goes live, it runs over **9,000 sample applicants**. The preview reports how many it matches, how decisions change, and what happens to written premium and the **loss ratio** (claims ÷ premium).
+- **Plain-English rule assistant.** An underwriter types *"Refer anyone under 21 who drives a sports car"*. Claude drafts the rule in RiskSure's format, the engine validates it, the preview shows its impact, and a person approves it before it is published.
+- **What-if simulator.** Sliders for every answer re-price the quote live, and the decision and risk score update with them.
+- **Underwriting queue.** Referred quotes can be approved (optionally at a different premium) or declined, with a required reason.
+- **Quote lifecycle with an audit trail.** Draft → Quoted / Referred / Declined → Bound → Issued. Invalid moves are refused (HTTP 409), and every change records who, when and why.
+- **Portfolio dashboard.** Quotes, policies, written premium, **straight-through rate** (the share decided with no human), referral rate, decision and risk-band mix, and recent activity, filterable by product.
+- **Calibrated and fitted pricing.**
+  - Base rates are calibrated so each product's sample loss ratio is 65%.
+  - Home and business rating factors are fitted from claims with a **Tweedie GLM**, using credibility blending, ordering rules and caps.
+- **Demo data seeding.** 400 sample applicants are run through the real engines, with a month of sales and underwriting activity. The book is re-created automatically on a fresh deploy.
+- **147 automated tests.** They cover rating, calibration, relativity fitting, the ML model, scorecards, rules, the impact preview, the API lifecycle, seeding and the rule assistant (with a fake Claude client, so no network is needed).
+
+---
+
+## 🛠️ Tech Stack
+
+| Frontend | Backend | ML & Data | Database | AI | DevOps |
+| --- | --- | --- | --- | --- | --- |
+| React 19 | Python 3.12 | scikit-learn (gradient boosting, Tweedie GLM) | SQLite | Claude API (structured outputs) | Docker |
+| Vite 6 | FastAPI + Uvicorn | SHAP | SQLAlchemy 2 | Pinned fallback examples | Render (API) |
+| Tailwind CSS 4 | Pydantic 2 | pandas, NumPy, SciPy | | | Vercel (frontend) |
+| Recharts | PyYAML (config) | joblib (model file) | | | GitHub |
+| | pytest | | | | |
+
+---
+
+## ⚙️ Getting Started
+
+Follow these steps to run RiskSure on a clean machine. They were tested from a fresh clone.
+
+### Prerequisites
+* **Python 3.12** (3.11 also works; check with `python --version`)
+* **Node.js 20 or newer** (tested on 22; check with `node --version`)
+* **Git**
+
+### Installation & Local Setup
+
+1. **Fork the repository.** Click **Fork** at the top right of this page.
+
+2. **Clone your fork:**
+   ```bash
+   git clone https://github.com/<your-username>/InsureTech-risksure.git
+   cd InsureTech-risksure
+   ```
+
+3. **Add the upstream remote** so you can pull in future changes:
+   ```bash
+   git remote add upstream https://github.com/Moukthika6706/InsureTech-risksure.git
+   ```
+
+4. **Set up the backend** (from the repository root):
+   ```bash
+   cd backend
+   python -m venv .venv
+   ```
+   Activate the virtual environment:
+   ```bash
+   # Windows (PowerShell)
+   .venv\Scripts\Activate.ps1
+
+   # macOS / Linux
+   source .venv/bin/activate
+   ```
+   Install the dependencies and create the demo data:
+   ```bash
+   pip install -r requirements.txt
+   python -m app.seed --reset
+   ```
+   `requirements.txt` pins exact versions so the saved model loads exactly as it was trained. `backend/requirements.lock` holds the full pinned set that the Docker image uses.
+
+5. **Configure environment variables (optional).** The backend reads these from your shell; see `backend/.env.example`. None are needed for local use.
+
+   | Variable | Default | Purpose |
+   | --- | --- | --- |
+   | `ANTHROPIC_API_KEY` | not set | Turns on the live rule assistant. Without it, the rules screen uses pre-written examples. |
+   | `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model used by the rule assistant |
+   | `ALLOWED_ORIGINS` | `http://localhost:5173` | Frontend URLs allowed to call the API (CORS) |
+   | `SEED_DEMO_DATA` | not set | `true` seeds an empty database on startup (used on Render) |
+
+6. **Run the API:**
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+   It runs at <http://localhost:8000>, with interactive docs at <http://localhost:8000/docs>.
+
+7. **Set up and run the frontend** in a second terminal, from the repository root:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   Open <http://localhost:5173>. The frontend uses `http://localhost:8000` by default; to point it at another API, copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_URL`.
+
+8. **Run the tests** (from `backend/`, with the virtual environment active):
+   ```bash
+   pytest -q
+   ```
+
+<details>
+<summary><b>Optional: retrain the model or recalibrate pricing</b></summary>
+
+All commands run from `backend/`. The committed model and configs are already trained and calibrated.
+
+```bash
+python -m ml.train_auto                          # retrain the auto claim model, print AUC and SHAP importance
+python -m engine.calibrate --dry-run             # loss ratio by product and segment
+python -m engine.fit_relativities --product home # propose fitted rating factors (nothing is written)
+python -m engine.preview                         # decision mix and loss ratio of the sample book
+python -m app.assistant "Refer anyone under 21 who drives a sports car"   # try the rule assistant
+```
+</details>
+
+<details>
+<summary><b>Troubleshooting</b></summary>
+
+* **"Offline" in the header.** The API isn't running, or it's on a different port. Start it (step 6) and refresh.
+* **CORS error in the browser console.** Add your frontend's URL to `ALLOWED_ORIGINS` (comma-separated) and restart the API.
+* **The rules screen says "AI unavailable".** That's expected without `ANTHROPIC_API_KEY`; the pre-written examples still work.
+* **You want a clean demo book.** Run `python -m app.seed --reset`.
+* **`[WinError 206] The filename or extension is too long` during `pip install` (Windows).** Some packages (NumPy) have very deep file paths. Clone into a short folder such as `C:\dev\`, or [enable long paths](https://learn.microsoft.com/windows/win32/fileio/maximum-file-path-limitation#enable-long-paths-in-windows-10-version-1607-and-later).
+</details>
+
+---
+
+## 🧭 Usage Examples
+
+### In the app
+1. **Get a quote.** Pick *Personal Auto*, set driver age 22, choose a sports car, and submit. The quote is **referred**: the waterfall shows each factor, SHAP shows that driver age drove the risk, and the rule panel says why.
+2. **Run a what-if.** On that quote, move the age slider to 40. The price drops and the decision flips to **Approved**, live.
+3. **Underwrite.** Open **Underwriting**, pick a referred quote, then approve it at a higher premium with a reason, and check the **Audit trail**.
+4. **Write a rule.** On **Rules**, type *"Decline homes in flood zone 3 with an asbestos roof"*, look at the impact on 2,500 sample homes, then approve and publish it.
+5. **See the portfolio.** **Portfolio** shows straight-through rate, referral rate, decision mix and risk bands.
+
+### API: health check
+```bash
+curl https://insuretech-risksure.onrender.com/health
+```
+```json
+{"status": "ok", "service": "risksure-api", "version": "1.0.0"}
+```
+
+### API: price a quote (nothing is saved)
+```bash
+curl -X POST https://insuretech-risksure.onrender.com/rate \
+  -H "Content-Type: application/json" \
+  -d '{"product": "auto", "applicant": {"driver_age": 24, "years_licensed": 5, "prior_claims_3y": 0,
+       "no_claim_bonus_pct": 35, "city_tier": 1, "vehicle_type": "hatchback", "vehicle_age_years": 3,
+       "insured_declared_value_inr": 650000, "annual_km": 12000, "parking": "garage", "anti_theft_device": true}}'
+```
+Response (shortened):
+```json
+{
+  "product": "auto",
+  "base_premium": 5045.2,
+  "rated_premium": 4560.84,
+  "premium": 6841.26,
+  "decision": "approve_adjusted",
+  "total_load_pct": 50.0,
+  "risk": {
+    "method": "ml_model",
+    "risk_score": 0.2356,
+    "risk_band": "high",
+    "baseline": 0.0323,
+    "factors": [
+      {"label": "Driver age", "value": 24, "impact": 2.6254, "direction": "increases risk"},
+      {"label": "Claims in last 3 years", "value": 0, "impact": -0.3908, "direction": "decreases risk"}
+    ]
+  },
+  "rule_hits": [
+    {"id": "auto_high_risk_load", "action": "load", "load_pct": 50.0,
+     "reason": "The claim model predicts a 15-40% chance of a claim; sample loss ratio for this band is ~105%."}
+  ],
+  "steps": [
+    {"step": 1, "kind": "coverage", "label": "Third-party liability", "amount_change": 1000.0, "running_total": 1000.0},
+    {"step": 2, "kind": "coverage", "label": "Own damage", "amount_change": 3824.6, "running_total": 4824.6}
+  ]
+}
+```
+
+### API: create, bind and issue a policy
+```bash
+curl -X POST https://insuretech-risksure.onrender.com/quotes -H "Content-Type: application/json" -d '{"product": "auto", "applicant": {...}}'
+curl -X POST https://insuretech-risksure.onrender.com/quotes/{id}/bind
+curl -X POST https://insuretech-risksure.onrender.com/quotes/{id}/issue
+curl https://insuretech-risksure.onrender.com/quotes/{id}/audit
+```
+
+<details>
+<summary><b>All endpoints</b></summary>
+
+| Area | Endpoints |
+| --- | --- |
+| Products | `GET /products`, `GET /products/{code}` |
+| Pricing | `POST /rate` (what-if, nothing saved), `POST /quotes` |
+| Lifecycle | `POST /quotes/{id}/bind`, `POST /quotes/{id}/issue`, `POST /quotes/{id}/underwrite`, `GET /underwriting/queue` |
+| Reading | `GET /quotes`, `GET /quotes/{id}`, `GET /quotes/{id}/audit`, `GET /audit`, `GET /policies`, `GET /dashboard/summary` |
+| Rules | `GET /rules`, `GET /rules/examples`, `POST /rules/draft`, `POST /rules/preview`, `POST /rules/publish`, `POST /rules/{id}/disable` |
+</details>
+
+---
+
+## 🏗️ Architecture
 
 ```mermaid
 flowchart LR
@@ -65,132 +320,139 @@ flowchart LR
     AS -- every draft is validated by --> RU
 ```
 
-One quote: `POST /quotes` → **rating** (`engine/rating.py`) → **risk** (`engine/risk.py`: the ML model for auto, the scorecard for home and business) → **rules** (`engine/rules.py`) → the lifecycle moves the quote to *quoted*, *referred* or *declined* and writes an audit event in the same database transaction.
+**One quote, end to end:**
+1. `POST /quotes`
+2. **rating** (`engine/rating.py`)
+3. **risk scoring** (`engine/risk.py`: the ML model for auto, the scorecard for home and business)
+4. **rules** (`engine/rules.py`)
+5. the lifecycle moves the quote to *quoted*, *referred* or *declined*, and writes an audit event in the same database transaction
 
-## Design ideas
+---
 
-1. **Config-driven products.** Fields, coverages, rates, rating tables, modifiers, risk method and rules all live in `config/`. The engines contain no product names or rates. Any YAML with `kind: product` is a product: a test defines a new "Bicycle" product in YAML alone and prices it with no code change. Configs are validated with Pydantic on load (`engine/schema.py`), so a typo fails loudly instead of mispricing quietly.
-2. **Explainable premium.** `rate()` returns every step: `{label, detail, multiplier, amount_change, running_total}`. Amounts are rounded at each step, so the waterfall adds up exactly to the premium.
-3. **Two ways to score risk.**
-   - **Auto** uses a gradient boosting model of next-year claim probability, with **SHAP** showing how much each answer moved this applicant's score.
-   - **Home and business** use a transparent points **scorecard** read from `config/scorecards.yaml`, the single source of truth. The engine reproduces the generator's points for all 4,000 sample homes and businesses.
-   - The score affects the decision and price **only through underwriting rules**, never as a hidden multiplier, so nothing is counted twice.
-4. **Underwriting rules engine.** Plain, testable Python with no AI.
-   - Rules are conditions (`all`/`any`, 8 operators, ordered risk bands) plus an action: decline, refer, or load the premium by a %. Precedence is decline > refer > loading > auto-approve.
-   - `preview_rule` runs a proposed rule over the cached sample book and reports how many applicants match, how decisions change, and what happens to written premium and the loss ratio.
-5. **Plain-English rule assistant** (`app/assistant.py`).
-   - Claude translates text into a rule draft using **structured outputs**. The schema is generated from the product configs and kept flat, because structured outputs don't support recursion.
-   - The underwriter's text is fenced as data.
-   - The draft goes through the *same* validator as `rules.yaml`, with one automatic repair attempt. Then come the impact preview and explicit approval.
-   - If the API is unavailable (no key, timeout, rate limit, refusal), the closest pre-written example is offered, so the screen still works.
-   - The key comes from `ANTHROPIC_API_KEY` and the model from `ANTHROPIC_MODEL`; neither is in git.
-6. **Quote lifecycle with an audit trail.** `app/lifecycle.py` is the only code that changes a status. Invalid moves return HTTP 409, and every change writes an `AuditEvent` in the same transaction. Rules published from the UI are stored in the database, not in YAML, because the host's disk is wiped on redeploy.
+## 🧠 Technical Depth
 
-## Data and models
+**Why config-driven products?** Real policy systems (Guidewire's included) separate the *product model* from the code, because insurers change rates and add products far more often than they change software. Here a product is a YAML file, validated with Pydantic when it loads, so a typo fails at startup instead of quietly mispricing.
 
-| Product | Rows | Risk method | Notes |
-|---|---|---|---|
-| Auto | 5,000 | Gradient boosting (scikit-learn) + SHAP | Cross-validated AUC **0.94 ± 0.006** (train 0.94, test 0.95: no overfitting). |
-| Home | 2,500 | Points scorecard | Rating factors fitted from claims (see below). |
-| Business | 1,500 | Points scorecard | Rating factors fitted from claims; most levels have few claims, so credibility blending matters. |
+**Why show the premium as a waterfall?** Pricing regulators and customers both ask "why this price?". The rating engine records every step (base cover, then each factor's multiplier, then discounts and loadings) and rounds at each step, so the bars add up exactly to the premium.
 
-The data is synthetic, and some of the results are by construction. In particular:
-- **The auto signal was amplified.** With realistic noise, even the formula that generated the data reached only AUC ~0.70, and the first model reached 0.68. Real motor claim models typically score 0.60–0.75. The generator's `AUTO_SIGNAL_STRENGTH = 4` makes the risk factors drive claims more strongly, so the demo model has a clear pattern to explain.
-- **Rates were calibrated** (`engine/calibrate.py`) so each product's **loss ratio** (claims ÷ premium) on the sample is 65%. One multiplier is applied per product, and the rating factors are untouched.
-- **Home and business rating factors were fitted** (`engine/fit_relativities.py`) with a **Tweedie GLM** (log link, power 1.5) of claims per rupee of base premium, using each YAML's own bands. Three safeguards apply: credibility blending under 30 claims, factors forced to stay in order, and caps of 0.5–5. Afterwards every risk band with 30 or more claims is within 20 points of target.
-- **Auto was deliberately not refitted.** The amplified data makes under-25s cost 20–28× more, which no sensible rating table can price. Young-driver risk is handled by underwriting rules instead (very high predicted risk → refer, high → +50%).
-- **Starter rules** (`config/rules.yaml`) are sized from the measured segment loss ratios. On the seeded demo book, **92% of quotes are decided with no human** (straight-through).
+**Why gradient boosting for auto, but scorecards for home and business?** Motor insurance has lots of data and strong patterns, which suits a model. Property risks are fewer and harder to model, and underwriters want rules they can read, so they get a transparent points scorecard. Both return the same shape (score, band, top factors), so the rest of the system treats them alike.
 
-## Run it locally
+**Why doesn't the ML score change the price directly?** The rating factors already charge for age, mileage and claims history, and the model also uses them, so multiplying by both would count the same risk twice. The score is used only through underwriting rules (refer very high risk, add a loading for high risk), and the impact preview measures whether each loading is justified.
 
-**Backend** (Python 3.12; from `backend/`):
+**Why is the AI only allowed to draft rules?** In a regulated business, decisions must be deterministic and auditable. Claude only translates English into a rule:
+- the reply must follow a JSON schema
+- it is checked by the same validator as hand-written rules, with one automatic repair attempt
+- it is previewed on the sample book and published only after a person approves
 
-```bash
-python -m venv .venv
-.venv/Scripts/python -m pip install -r requirements.txt
-.venv/Scripts/python -m app.seed --reset
-.venv/Scripts/python -m uvicorn app.main:app --reload
-```
+If the API is unavailable, the screen falls back to pre-written examples.
 
-On macOS/Linux, use `.venv/bin/python` instead of `.venv/Scripts/python`. The API runs at <http://localhost:8000>, with interactive docs at `/docs`. The seed command creates about 400 demo quotes (a month of quotes, sales and referral decisions) through the real engines.
+**Why calibrate, then fit with a GLM?**
+- **Calibration** sets the overall price level: one multiplier per product so the sample loss ratio is 65%, leaving about 35% for expenses and profit.
+- **The Tweedie GLM** then fits the *differences between customers*. That's the standard actuarial tool for insurance losses, where most policies claim nothing and the rest claim skewed amounts.
+- **The safeguards** stop small segments from producing silly prices: credibility blending, factors kept in order, and caps.
 
-**Frontend** (from `frontend/`):
+**Why SQLite and Docker?** SQLite needs no database server, which keeps the demo simple. The Docker image is built from the repository root so the API ships with its config, data and model, and it installs exact pinned versions. The production model gives byte-for-byte the same prices as a laptop.
 
-```bash
-npm install
-npm run dev
-```
+---
 
-It opens at <http://localhost:5173>. `VITE_API_URL` points it at the API (default `http://localhost:8000`).
+## 📊 Data and models
 
-**Rule assistant (optional):** set `ANTHROPIC_API_KEY` (and optionally `ANTHROPIC_MODEL`) in the shell before starting the API. Without a key, the rules screen uses the pre-written examples. You can try it from the terminal:
+| Product | Sample size | Risk method | Result |
+| --- | --- | --- | --- |
+| Personal Auto | 5,000 | Gradient boosting + SHAP | Cross-validated AUC **0.94 ± 0.006** (train 0.94, test 0.95: no overfitting) |
+| Homeowners | 2,500 | Points scorecard | Rating factors fitted with a Tweedie GLM |
+| Small Business | 1,500 | Points scorecard | Rating factors fitted (low-credibility levels blended toward 1.0) |
 
-```bash
-.venv/Scripts/python -m app.assistant "Refer anyone under 21 who drives a sports car"
-```
+Some of these results are true by construction:
+* **All applicants are synthetic.** They come from `data/generate_data.py` (fixed seed 42).
+* **The auto signal is amplified.** With realistic noise, even the formula that generated the data reached only AUC ~0.70, and the first model reached 0.68. Real motor claim models typically score 0.60–0.75. `AUTO_SIGNAL_STRENGTH = 4` makes the risk factors drive claims more strongly, so the demo model has a clear pattern to explain.
+* **Rates are illustrative.** They are calibrated to a 65% loss ratio on this sample, not to any real market.
+* **Auto rating factors were deliberately not refitted.** The amplified data makes under-25s cost 20–28× more, which no sensible rating table can price, so young-driver risk is handled by underwriting rules instead.
 
-**Retrain or recalibrate:** these are optional, because the committed model and configs are already calibrated.
+---
 
-```bash
-.venv/Scripts/python -m ml.train_auto
-.venv/Scripts/python -m engine.calibrate --dry-run
-.venv/Scripts/python -m engine.fit_relativities --product home
-.venv/Scripts/python -m engine.preview
-```
+## ⚠️ Limitations
 
-## Tests
+* **No login or roles.** The person acting is a field in the request, and anyone can approve quotes or publish rules on the public demo (restarts reset it).
+* **SQLite with tables created on startup.** On Render's free plan the database resets on every deploy, and the seed restores the demo book.
+* **Overrides and field checks.** Underwriter premium overrides are not yet limited (for example, to the product's minimum premium), and there are no checks between fields (for example, years licensed ≤ age − 18).
+* **The live Claude path** is covered by tests with a fake client. It needs `ANTHROPIC_API_KEY` to run for real.
+* **The UI** is light mode only, and the JavaScript bundle is about 640 kB (not yet code-split).
 
-From `backend/`:
+## 🔭 Future Improvements
 
-```bash
-.venv/Scripts/python -m pytest -q
-```
+* Authentication and role-based access (customer, underwriter, rule publisher, admin)
+* Postgres with Alembic migrations, and persistent storage for the live demo
+* Validation for premium overrides and for checks between fields
+* Rule versioning with effective dates and rollback, so you can see which rule set priced any past quote
+* Refit auto rating factors on realistic (un-amplified) data, and monitor the model for drift
+* More products (travel, two-wheeler), each added as a YAML file, to prove the config-driven design again
+* A dark mode and a code-split frontend bundle
 
-There are 147 tests, covering:
-- rating, including a hand-calculated premium, the waterfall adding up, and a new product from YAML alone
-- calibration and relativity fitting (deterministic, idempotent, 65% after recalibration)
-- the ML model: quality floor, no overfitting, SHAP values adding up to the prediction
-- the scorecard matching the data generator
-- rule validation, evaluation and the impact preview
-- the API lifecycle and audit trail, the dashboard, and seeding
-- the rule assistant, with a fake Claude client so no network or key is needed
+---
 
-## Deployment
-
-- **Backend → Render** using `render.yaml` (Docker, free plan). The image is built from the repo root, because the API also needs `config/`, `data/` and `models/`. It installs from `backend/requirements.lock` (exact versions), so the saved model loads exactly as it was trained. Free instances have no persistent disk, so `SEED_DEMO_DATA=true` re-creates the demo book on each start (about 10–20 s, in the background). Set `ALLOWED_ORIGINS` to the Vercel URL, and optionally `ANTHROPIC_API_KEY`.
-- **Frontend → Vercel** with root directory `frontend/` and `VITE_API_URL` set to the Render URL.
-
-## API overview
-
-| | |
-|---|---|
-| Products | `GET /products`, `GET /products/{code}` |
-| Pricing | `POST /rate` (what-if, nothing saved), `POST /quotes` |
-| Lifecycle | `POST /quotes/{id}/bind`, `/issue`, `/underwrite`; `GET /underwriting/queue` |
-| Reading | `GET /quotes`, `/quotes/{id}`, `/quotes/{id}/audit`, `/audit`, `/policies`, `/dashboard/summary` |
-| Rules | `GET /rules`, `/rules/examples`; `POST /rules/draft`, `/rules/preview`, `/rules/publish`, `/rules/{id}/disable` |
-
-Full request and response schemas are at `/docs`. The design document is [SPEC.md](SPEC.md).
-
-## Project layout
+## 📁 Repository Structure
 
 ```
-config/       product YAMLs, rules, scorecards, rule examples, calibration settings
-data/         synthetic applicants + generate_data.py
-models/       auto_risk.joblib (trained model)
-backend/
-  engine/     rating, scorecard, risk, rules, preview, calibrate, fit_relativities (no web code)
-  ml/         train_auto.py, auto_model.py (scoring + SHAP)
-  app/        FastAPI: routes, lifecycle, services, models (SQLAlchemy), assistant, seed
-  tests/      pytest
-frontend/src/ pages/ (wizard, result, queue, rules, dashboard), components/ (waterfall, what-if, …)
+InsureTech-risksure/
+├── backend/
+│   ├── app/                  # FastAPI: routes, schemas, lifecycle, services, DB models, rule assistant, seed
+│   ├── engine/               # generic engines: rating, scorecard, risk, rules, preview, calibrate, fit_relativities
+│   ├── ml/                   # train_auto.py (training) and auto_model.py (scoring + SHAP)
+│   ├── tests/                # 147 pytest tests
+│   ├── requirements.txt      # direct dependencies, pinned
+│   └── requirements.lock     # full pinned set used by Docker
+├── frontend/
+│   └── src/
+│       ├── pages/            # landing, quote wizard, quote result, underwriting queue, rules, dashboard
+│       ├── components/       # waterfall, what-if, risk factors, audit timeline, forms, UI kit, icons
+│       └── api.js, format.js, fields.js, router.js, rules.js
+├── config/                   # auto/home/business YAMLs, rules.yaml, scorecards.yaml, rule_examples.yaml, calibration.yaml
+├── data/                     # synthetic applicants + generate_data.py
+├── models/                   # auto_risk.joblib (trained model)
+├── docs/                     # logo and screenshots
+├── Dockerfile                # API image (built from the repo root)
+├── render.yaml               # Render blueprint
+├── SPEC.md                   # design document
+└── CONTRIBUTING.md
 ```
 
-## Limitations and next steps
+---
 
-- **Login.** There is none: the person acting is a field in the request. A real system needs authentication and roles (customer, underwriter, rule publisher).
-- **Database.** It is SQLite with tables created on startup. On Render's free plan it resets on every deploy (the seed restores the demo book). Next would be Postgres and Alembic migrations.
-- **Checks between fields** are not implemented (e.g. years licensed ≤ driver age − 18).
-- **Auto relativities** were not refitted; under-25 risk is priced through underwriting rules.
-- **The live Claude call** has been tested only with a fake client in this repo's test suite; set a key to exercise it.
-- **The UI** is light mode only. Recharts makes the JS bundle about 640 kB (it could be code-split).
+## 🤝 Contributing
+
+Contributions are welcome. To keep the repository tidy, please follow these guidelines:
+
+* **Open or claim an issue first.** Comment on the issue you'd like to work on, and wait to be assigned before writing code. Pull requests without an assigned issue may be closed.
+* **Create a branch.** Never push directly to `main`:
+  ```bash
+  git checkout -b feat/short-description
+  ```
+* **Keep pull requests focused.** Address only the assigned issue, without formatting noise or unrelated changes.
+* **Write clear commits and link the issue** in your pull request description (for example, `Closes #42`).
+* **Run the checks before you push:** `pytest -q` in `backend/`, and `npm run lint && npm run build` in `frontend/`.
+* **Respect the design ideas.** No rates or product names in Python (they belong in YAML), and the AI never prices or decides.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow.
+
+---
+
+## 👑 Project Maintainers
+
+| Name | Role | GitHub | Contact |
+| --- | --- | --- | --- |
+| **Moukthika** | Project Admin | [@Moukthika6706](https://github.com/Moukthika6706) | [GitHub Issues](https://github.com/Moukthika6706/InsureTech-risksure/issues) |
+
+## ✨ Contributors
+
+Thanks goes to everyone who has contributed to RiskSure:
+
+<a href="https://github.com/Moukthika6706/InsureTech-risksure/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Moukthika6706/InsureTech-risksure" alt="Contributors" />
+</a>
+
+---
+
+## 📄 License
+
+No open-source license has been chosen yet, so all rights are reserved by the author. Please open an issue if you'd like to reuse the code.

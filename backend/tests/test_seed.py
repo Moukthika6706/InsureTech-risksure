@@ -1,4 +1,6 @@
 """The seed script, run against an isolated in-memory database."""
+from datetime import datetime, timezone
+
 import pytest
 from sqlalchemy import select
 
@@ -34,6 +36,7 @@ def test_seeded_history_is_consistent(seeded):
             assert events[-1].to_status == q.status                       # audit trail agrees with the quote
             times = [e.created_at for e in events]
             assert times == sorted(times)                                  # time moves forward
+            assert times[-1].replace(tzinfo=None) <= datetime.now(timezone.utc).replace(tzinfo=None)   # never in the future
         for p in db.scalars(select(Policy)):
             assert p.quote.status == "issued" and p.policy_number.startswith("P-")
 

@@ -50,9 +50,14 @@ export function Logo({ light = false }) {
   return (
     <span className="flex items-center gap-2.5">
       <span className={`grid h-9 w-9 place-items-center rounded-xl ${light ? 'bg-white text-steel-950' : 'bg-steel-950 text-white'}`}>
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
-          <path d="M12 3l7.5 3v5.6c0 4.9-3.2 8.6-7.5 9.9-4.3-1.3-7.5-5-7.5-9.9V6z" />
-          <circle cx="12" cy="11.5" r="2.2" fill="#3a6bff" stroke="none" />
+        {/* Shield over a house (property) and a car (casualty / motor). Same mark as docs/logo.svg. */}
+        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
+          <path d="M12 2.5l8 3.2v6c0 5.2-3.4 9.1-8 10.5-4.6-1.4-8-5.3-8-10.5v-6z" />
+          <path d="M8.7 9.6L12 6.7l3.3 2.9" />
+          <path d="M9.7 9v2.3h4.6V9" />
+          <path d="M7.8 17.6v-1.8l1.3-1.8h5.8l1.3 1.8v1.8z" fill="#3a6bff" stroke="#3a6bff" strokeWidth="1" />
+          <circle cx="9.7" cy="17.7" r="1" fill="currentColor" stroke="none" />
+          <circle cx="14.3" cy="17.7" r="1" fill="currentColor" stroke="none" />
         </svg>
       </span>
       <span className={`font-display text-lg font-medium tracking-tight ${light ? 'text-white' : 'text-steel-950'}`}>RiskSure</span>
